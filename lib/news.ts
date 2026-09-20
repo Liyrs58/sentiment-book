@@ -1,4 +1,4 @@
-import type { NewsArticle } from "./types";
+import type { RawArticle } from "./types";
 
 function article(
   id: string,
@@ -6,11 +6,8 @@ function article(
   ticker: string,
   source: string,
   headline: string,
-  dek: string,
-  positive: number,
-  negative: number
-): NewsArticle {
-  const neutral = Number((1 - positive - negative).toFixed(4));
+  dek: string
+): RawArticle {
   return {
     id,
     date,
@@ -19,25 +16,22 @@ function article(
     source,
     headline,
     dek,
-    scores: { positive, negative, neutral },
-    scoredBy: "finbert-paper",
+    desk: true,
   };
 }
 
 /**
- * Bundled wire copy for the 2024–2025 sample window.
- * Scores are precomputed FinBERT-style class probabilities (offline paper mode).
+ * Editorial desk wire for the 2024–2025 sample window.
+ * Headlines only — scores are produced by the scorer, not stored here.
  */
-export const NEWS: NewsArticle[] = [
+export const EDITORIAL_CORPUS: RawArticle[] = [
   article(
     "2024-01-gspc-soft",
     "2024-01-12",
     "GSPC",
     "FT",
     "U.S. inflation cools; traders lean into a June cut",
-    "Core CPI undershoots, lifting the S&P 500 as real yields ease. Breadth remains narrow.",
-    0.72,
-    0.09
+    "Core CPI undershoots, lifting the S&P 500 as real yields ease. Breadth remains narrow."
   ),
   article(
     "2024-01-gc-bid",
@@ -45,9 +39,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "Reuters",
     "Gold firms as real rates slip and ETF outflows stall",
-    "Bullion holds the $2,000 handle. Official-sector buying remains the silent bid.",
-    0.64,
-    0.11
+    "Bullion holds the $2,000 handle. Official-sector buying remains the silent bid."
   ),
   article(
     "2024-01-hsi-property",
@@ -55,9 +47,7 @@ export const NEWS: NewsArticle[] = [
     "HSI",
     "SCMP",
     "Hong Kong developers wobble as home prices print a fresh low",
-    "Hang Seng property names lead declines. Liquidity, not valuations, is the constraint.",
-    0.12,
-    0.71
+    "Hang Seng property names lead declines. Liquidity, not valuations, is the constraint."
   ),
   article(
     "2024-02-ixic-nvidia",
@@ -65,9 +55,7 @@ export const NEWS: NewsArticle[] = [
     "IXIC",
     "Bloomberg",
     "Nvidia results reset the AI capex clock; Nasdaq extends melt-up",
-    "Data-centre guidance pulls the composite to records. Breadth still a footnote.",
-    0.81,
-    0.06
+    "Data-centre guidance pulls the composite to records. Breadth still a footnote."
   ),
   article(
     "2024-02-ks11-hbm",
@@ -75,9 +63,7 @@ export const NEWS: NewsArticle[] = [
     "KS11",
     "Yonhap",
     "Korean chipmakers lift KOSPI on HBM allocation talk",
-    "Samsung and SK Hynix catch a second-derivative bid from AI server demand.",
-    0.69,
-    0.12
+    "Samsung and SK Hynix catch a second-derivative bid from AI server demand."
   ),
   article(
     "2024-02-ssec-slow",
@@ -85,9 +71,7 @@ export const NEWS: NewsArticle[] = [
     "SSEC",
     "Caixin",
     "Shanghai Composite sags as private-sector PMI stays below 50",
-    "Stimulus remains piecemeal. Foreign positioning is already light.",
-    0.18,
-    0.62
+    "Stimulus remains piecemeal. Foreign positioning is already light."
   ),
   article(
     "2024-03-gc-record",
@@ -95,9 +79,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "WSJ",
     "Gold prints a record as traders price a June Federal Reserve cut",
-    "The metal clears $2,180. Central-bank demand and a softer dollar do the rest.",
-    0.78,
-    0.07
+    "The metal clears $2,180. Central-bank demand and a softer dollar do the rest."
   ),
   article(
     "2024-03-sx5e-ecb",
@@ -105,9 +87,7 @@ export const NEWS: NewsArticle[] = [
     "SX5E",
     "Les Echos",
     "ECB holds, but Lagarde opens the door to June",
-    "Euro Stoxx banks rally on the path of least resistance for deposits.",
-    0.61,
-    0.16
+    "Euro Stoxx banks rally on the path of least resistance for deposits."
   ),
   article(
     "2024-03-cl-opec",
@@ -115,9 +95,7 @@ export const NEWS: NewsArticle[] = [
     "CL",
     "Argus",
     "OPEC+ extends cuts; WTI firms toward $83",
-    "Compliance is the usual question. Inventories nevertheless tighten into driving season.",
-    0.58,
-    0.19
+    "Compliance is the usual question. Inventories nevertheless tighten into driving season."
   ),
   article(
     "2024-04-cl-iran",
@@ -125,9 +103,7 @@ export const NEWS: NewsArticle[] = [
     "CL",
     "Reuters",
     "Iran-Israel strikes lift the war premium; WTI spikes then fades",
-    "The geopolitical bid proves perishable. Demand, not the Strait, reasserts itself.",
-    0.41,
-    0.37
+    "The geopolitical bid proves perishable. Demand, not the Strait, reasserts itself."
   ),
   article(
     "2024-04-gspc-cpi",
@@ -135,9 +111,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "FT",
     "Sticky U.S. CPI pushes rate-cut odds into 2025; S&P 500 stumbles",
-    "Three hot prints in a row. Duration and growth stocks both pay the bill.",
-    0.14,
-    0.68
+    "Three hot prints in a row. Duration and growth stocks both pay the bill."
   ),
   article(
     "2024-04-dji-industrials",
@@ -145,9 +119,7 @@ export const NEWS: NewsArticle[] = [
     "DJI",
     "Barron's",
     "Dow industrials lag as higher-for-longer revisits the cost of capital",
-    "Caterpillar and the transports quietly de-rate. The index looks tired, not broken.",
-    0.22,
-    0.51
+    "Caterpillar and the transports quietly de-rate. The index looks tired, not broken."
   ),
   article(
     "2024-05-nsei-election",
@@ -155,9 +127,7 @@ export const NEWS: NewsArticle[] = [
     "NSEI",
     "Economic Times",
     "Nifty marks records into the general election; FIIs stay long India",
-    "Domestic SIP flows dwarf foreign wobbles. Valuations are the only complaint.",
-    0.74,
-    0.09
+    "Domestic SIP flows dwarf foreign wobbles. Valuations are the only complaint."
   ),
   article(
     "2024-05-bsesn-banks",
@@ -165,9 +135,7 @@ export const NEWS: NewsArticle[] = [
     "BSESN",
     "Mint",
     "Sensex banks extend the bid after a narrower-than-feared election result",
-    "Coalition arithmetic is messy; the policy mix is not. Private banks lead.",
-    0.66,
-    0.14
+    "Coalition arithmetic is messy; the policy mix is not. Private banks lead."
   ),
   article(
     "2024-05-ftse-gilt",
@@ -175,9 +143,7 @@ export const NEWS: NewsArticle[] = [
     "FTSE",
     "The Times",
     "FTSE 100 capped as gilt yields refuse to recede",
-    "Energy and miners keep the index afloat. Domestic UK names do not.",
-    0.33,
-    0.39
+    "Energy and miners keep the index afloat. Domestic UK names do not."
   ),
   article(
     "2024-06-sx5e-cut",
@@ -185,9 +151,7 @@ export const NEWS: NewsArticle[] = [
     "SX5E",
     "Handelsblatt",
     "ECB delivers a first cut; Euro Stoxx banks take it in stride",
-    "The path after June is data-dependent. Real rates in the euro area still bite.",
-    0.57,
-    0.18
+    "The path after June is data-dependent. Real rates in the euro area still bite."
   ),
   article(
     "2024-06-fchi-vote",
@@ -195,9 +159,7 @@ export const NEWS: NewsArticle[] = [
     "FCHI",
     "Le Monde",
     "Snap French election hammers the CAC 40; banks gap lower",
-    "Sovereign-spread risk returns to a market that had forgotten it.",
-    0.08,
-    0.79
+    "Sovereign-spread risk returns to a market that had forgotten it."
   ),
   article(
     "2024-06-si-industrial",
@@ -205,9 +167,7 @@ export const NEWS: NewsArticle[] = [
     "SI",
     "Kitco",
     "Silver lags gold as industrial demand in China stays patchy",
-    "The gold/silver ratio stretches. Photovoltaic offtake is the missing bid.",
-    0.27,
-    0.48
+    "The gold/silver ratio stretches. Photovoltaic offtake is the missing bid."
   ),
   article(
     "2024-07-fchi-second",
@@ -215,9 +175,7 @@ export const NEWS: NewsArticle[] = [
     "FCHI",
     "Les Echos",
     "Hung parliament in Paris; CAC 40 claws back half the June slide",
-    "The worst fiscal outcomes are taken off the table. Banks still trade cheap.",
-    0.49,
-    0.28
+    "The worst fiscal outcomes are taken off the table. Banks still trade cheap."
   ),
   article(
     "2024-07-ixic-earnings",
@@ -225,9 +183,7 @@ export const NEWS: NewsArticle[] = [
     "IXIC",
     "Bloomberg",
     "Megacap earnings clear a high bar; Nasdaq holds records",
-    "Capex commentary stays aggressive. The index is an earnings story, not a multiple one.",
-    0.7,
-    0.11
+    "Capex commentary stays aggressive. The index is an earnings story, not a multiple one."
   ),
   article(
     "2024-07-cl-demand",
@@ -235,9 +191,7 @@ export const NEWS: NewsArticle[] = [
     "CL",
     "IEA Oil Market Report",
     "IEA trims demand; WTI slips as U.S. gasoline looks soft",
-    "China's apparent oil demand is the swing factor. Inventories rebuild.",
-    0.19,
-    0.58
+    "China's apparent oil demand is the swing factor. Inventories rebuild."
   ),
   article(
     "2024-08-gspc-unwind",
@@ -245,9 +199,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "FT",
     "Yen carry unwind slams global equities; S&P 500 posts its worst day of the year",
-    "Vol of vol spikes. The VIX prints a 30-handle that does not linger.",
-    0.06,
-    0.84
+    "Vol of vol spikes. The VIX prints a 30-handle that does not linger."
   ),
   article(
     "2024-08-ks11-carry",
@@ -255,9 +207,7 @@ export const NEWS: NewsArticle[] = [
     "KS11",
     "Korea Times",
     "KOSPI tumbles as the carry trade meets thin August books",
-    "Foreigners dump semiconductors into a holiday tape. The bounce starts the same week.",
-    0.09,
-    0.8
+    "Foreigners dump semiconductors into a holiday tape. The bounce starts the same week."
   ),
   article(
     "2024-08-gc-haven",
@@ -265,9 +215,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "Reuters",
     "Gold bid as equity vol erupts, then fades with the rebound",
-    "The haven bid is real for two sessions. Recalibration of rate-cut odds does more.",
-    0.63,
-    0.17
+    "The haven bid is real for two sessions. Recalibration of rate-cut odds does more."
   ),
   article(
     "2024-09-hsi-stimulus",
@@ -275,9 +223,7 @@ export const NEWS: NewsArticle[] = [
     "HSI",
     "SCMP",
     "Beijing's stimulus barrage ignites the Hang Seng; property and brokers gap up",
-    "Swap facility, RRR and a pledged stock-market bid. The tape finally has a narrative.",
-    0.83,
-    0.06
+    "Swap facility, RRR and a pledged stock-market bid. The tape finally has a narrative."
   ),
   article(
     "2024-09-ssec-package",
@@ -285,9 +231,7 @@ export const NEWS: NewsArticle[] = [
     "SSEC",
     "Xinhua",
     "Shanghai Composite surges as the PBOC and CSRC move in concert",
-    "A coordinated package, not another drip. Turnover explodes from a depressed base.",
-    0.8,
-    0.08
+    "A coordinated package, not another drip. Turnover explodes from a depressed base."
   ),
   article(
     "2024-09-gspc-cut",
@@ -295,9 +239,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "WSJ",
     "Fed cuts 50bp; S&P 500 treats it as insurance, not panic",
-    "The larger increment is read as confidence in the landing, for a week.",
-    0.67,
-    0.14
+    "The larger increment is read as confidence in the landing, for a week."
   ),
   article(
     "2024-10-hsi-fade",
@@ -305,9 +247,7 @@ export const NEWS: NewsArticle[] = [
     "HSI",
     "FT",
     "Hang Seng gives back the stimulus spike as follow-through is thin",
-    "The policy put is real; the earnings put is not. Northbound flows stall.",
-    0.29,
-    0.52
+    "The policy put is real; the earnings put is not. Northbound flows stall."
   ),
   article(
     "2024-10-cl-middle-east",
@@ -315,9 +255,7 @@ export const NEWS: NewsArticle[] = [
     "CL",
     "Reuters",
     "Crude pops on Middle East escalation, then rolls over as supply holds",
-    "Spare capacity and SPR talk cap the premium. WTI fails to hold $75.",
-    0.36,
-    0.4
+    "Spare capacity and SPR talk cap the premium. WTI fails to hold $75."
   ),
   article(
     "2024-10-dji-rotation",
@@ -325,9 +263,7 @@ export const NEWS: NewsArticle[] = [
     "DJI",
     "WSJ",
     "Dow catches a rotation bid as rate-sensitive industrials stabilize",
-    "Soft-landing tape favours cash-flow names the Nasdaq had ignored.",
-    0.55,
-    0.2
+    "Soft-landing tape favours cash-flow names the Nasdaq had ignored."
   ),
   article(
     "2024-11-gspc-election",
@@ -335,9 +271,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "FT",
     "Sweep in Washington: S&P 500 prices deregulation and a friendlier fiscal mix",
-    "Financials and cyclicals lead. The dollar and the long bond are the other side.",
-    0.76,
-    0.1
+    "Financials and cyclicals lead. The dollar and the long bond are the other side."
   ),
   article(
     "2024-11-ixic-mixed",
@@ -345,9 +279,7 @@ export const NEWS: NewsArticle[] = [
     "IXIC",
     "Bloomberg",
     "Nasdaq lags the post-election tape as tariff talk hits megacap supply chains",
-    "The same administration is both pro-equity and anti-import. Positioning is confused.",
-    0.38,
-    0.34
+    "The same administration is both pro-equity and anti-import. Positioning is confused."
   ),
   article(
     "2024-11-ssec-tariff",
@@ -355,9 +287,7 @@ export const NEWS: NewsArticle[] = [
     "SSEC",
     "Caixin",
     "Shanghai slips as markets price a second Trump tariff round",
-    "Exporters de-rate first. The domestic-demand story has not yet replaced them.",
-    0.16,
-    0.66
+    "Exporters de-rate first. The domestic-demand story has not yet replaced them."
   ),
   article(
     "2024-12-gc-banks",
@@ -365,9 +295,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "World Gold Council",
     "Official-sector gold buying stays elevated into year-end",
-    "EM reserve managers keep accumulating. The ETF bid is a late arrival.",
-    0.71,
-    0.09
+    "EM reserve managers keep accumulating. The ETF bid is a late arrival."
   ),
   article(
     "2024-12-ftse-budget",
@@ -375,9 +303,7 @@ export const NEWS: NewsArticle[] = [
     "FTSE",
     "The Telegraph",
     "FTSE 100 holds as sterling and gilts digest the autumn budget",
-    "Miners and oils do the work. UK domestic earnings remain a second thought.",
-    0.44,
-    0.27
+    "Miners and oils do the work. UK domestic earnings remain a second thought."
   ),
   article(
     "2024-12-nsei-fii",
@@ -385,9 +311,7 @@ export const NEWS: NewsArticle[] = [
     "NSEI",
     "Moneycontrol",
     "Nifty consolidates after a year of records; FII selling is absorbed",
-    "Domestic institutions remain the buyer of first resort. Multiples are full.",
-    0.48,
-    0.24
+    "Domestic institutions remain the buyer of first resort. Multiples are full."
   ),
   article(
     "2025-01-ixic-deepseek",
@@ -395,9 +319,7 @@ export const NEWS: NewsArticle[] = [
     "IXIC",
     "FT",
     "A cheaper Chinese model rattles AI capex assumptions; Nasdaq drops hard",
-    "The question is not whether demand exists. It is whether the spend was too front-loaded.",
-    0.11,
-    0.77
+    "The question is not whether demand exists. It is whether the spend was too front-loaded."
   ),
   article(
     "2025-01-ks11-deepseek",
@@ -405,9 +327,7 @@ export const NEWS: NewsArticle[] = [
     "KS11",
     "Korea Herald",
     "KOSPI semiconductors sold as the market reprices HBM intensity",
-    "A one-day tape. The medium-term capacity argument is slower to unwind.",
-    0.14,
-    0.7
+    "A one-day tape. The medium-term capacity argument is slower to unwind."
   ),
   article(
     "2025-01-ssec-ai",
@@ -415,9 +335,7 @@ export const NEWS: NewsArticle[] = [
     "SSEC",
     "Yicai",
     "Onshore China tech bid as markets read a local model as a national champion",
-    "The same news that hits Nasdaq is a relative-value gift in Shanghai.",
-    0.68,
-    0.15
+    "The same news that hits Nasdaq is a relative-value gift in Shanghai."
   ),
   article(
     "2025-02-gc-ath",
@@ -425,9 +343,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "Reuters",
     "Gold pushes through $2,900 as official buying refuses to fade",
-    "Real yields are no longer the whole story. Diversification of reserves is.",
-    0.79,
-    0.07
+    "Real yields are no longer the whole story. Diversification of reserves is."
   ),
   article(
     "2025-02-si-catchup",
@@ -435,9 +351,7 @@ export const NEWS: NewsArticle[] = [
     "SI",
     "Kitco",
     "Silver finally follows gold; industrial offtake improves at the margin",
-    "The ratio compresses from extreme levels. Volumes confirm the move.",
-    0.66,
-    0.13
+    "The ratio compresses from extreme levels. Volumes confirm the move."
   ),
   article(
     "2025-02-gspc-earnings",
@@ -445,9 +359,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "WSJ",
     "S&P 500 earnings season lands close to the high bar",
-    "Margins hold. Guidance is cautious, not catastrophic. Multiples still need a friend.",
-    0.52,
-    0.22
+    "Margins hold. Guidance is cautious, not catastrophic. Multiples still need a friend."
   ),
   article(
     "2025-03-sx5e-defence",
@@ -455,9 +367,7 @@ export const NEWS: NewsArticle[] = [
     "SX5E",
     "FAZ",
     "Europe's defence-spend pivot lifts Euro Stoxx industrials and banks",
-    "Fiscal exceptionalism for security. The Bund market is the constraint.",
-    0.73,
-    0.11
+    "Fiscal exceptionalism for security. The Bund market is the constraint."
   ),
   article(
     "2025-03-fchi-defence",
@@ -465,9 +375,7 @@ export const NEWS: NewsArticle[] = [
     "FCHI",
     "Les Echos",
     "CAC 40 defence and luxury diverge; the index still nets a gain",
-    "Re-armament is a sector story. Chinese tourist traffic is the other one.",
-    0.58,
-    0.2
+    "Re-armament is a sector story. Chinese tourist traffic is the other one."
   ),
   article(
     "2025-03-ftse-energy",
@@ -475,9 +383,7 @@ export const NEWS: NewsArticle[] = [
     "FTSE",
     "FT",
     "FTSE 100 helped by energy and a softer sterling",
-    "The index remains a global cyclicals vehicle listed in London.",
-    0.54,
-    0.21
+    "The index remains a global cyclicals vehicle listed in London."
   ),
   article(
     "2025-04-gspc-tariff",
@@ -485,9 +391,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "FT",
     "Broad tariff announcement knocks the S&P 500 into a risk-off air pocket",
-    "Growth, margin and dollar assumptions all move at once. Liquidity is the first casualty.",
-    0.07,
-    0.82
+    "Growth, margin and dollar assumptions all move at once. Liquidity is the first casualty."
   ),
   article(
     "2025-04-gc-panic",
@@ -495,9 +399,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "Reuters",
     "Gold spiked, then offered, as the tariff shock forces a dash for cash",
-    "The haven bid loses to margin calls for two sessions — then reasserts.",
-    0.46,
-    0.33
+    "The haven bid loses to margin calls for two sessions — then reasserts."
   ),
   article(
     "2025-04-hsi-tariff",
@@ -505,9 +407,7 @@ export const NEWS: NewsArticle[] = [
     "HSI",
     "SCMP",
     "Hang Seng exporters gapped down on the new tariff schedule",
-    "The second China shock in six months. Domestic policy is asked to do more.",
-    0.1,
-    0.76
+    "The second China shock in six months. Domestic policy is asked to do more."
   ),
   article(
     "2025-04-cl-demand-scare",
@@ -515,9 +415,7 @@ export const NEWS: NewsArticle[] = [
     "CL",
     "Argus",
     "WTI slides as markets price a growth scare, not a supply one",
-    "OPEC+ has little room to tighten into weaker demand. The curve flattens.",
-    0.12,
-    0.69
+    "OPEC+ has little room to tighten into weaker demand. The curve flattens."
   ),
   article(
     "2025-05-gspc-pause",
@@ -525,9 +423,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "WSJ",
     "A 90-day tariff pause rebuilds the S&P 500; the bounce is violent",
-    "Positioning had been one-way. The index recoups a large share of April in days.",
-    0.74,
-    0.12
+    "Positioning had been one-way. The index recoups a large share of April in days."
   ),
   article(
     "2025-05-ixic-bounce",
@@ -535,9 +431,7 @@ export const NEWS: NewsArticle[] = [
     "IXIC",
     "Bloomberg",
     "Nasdaq leads the relief rally as megacap supply-chain risk is deferred",
-    "Deferred is not cancelled. Multiples re-expand anyway.",
-    0.71,
-    0.14
+    "Deferred is not cancelled. Multiples re-expand anyway."
   ),
   article(
     "2025-05-nsei-relative",
@@ -545,9 +439,7 @@ export const NEWS: NewsArticle[] = [
     "NSEI",
     "Economic Times",
     "Nifty holds up as a relative-value shelter from the tariff tape",
-    "India is not immune. It is less in the blast radius. Domestic flows do the rest.",
-    0.61,
-    0.17
+    "India is not immune. It is less in the blast radius. Domestic flows do the rest."
   ),
   article(
     "2025-06-cl-strait",
@@ -555,9 +447,7 @@ export const NEWS: NewsArticle[] = [
     "CL",
     "Reuters",
     "Middle East escalation puts a $10 war premium back into WTI",
-    "The bid is geopolitical, not fundamental. Inventories still argue for patience.",
-    0.62,
-    0.22
+    "The bid is geopolitical, not fundamental. Inventories still argue for patience."
   ),
   article(
     "2025-06-gc-geo",
@@ -565,9 +455,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "FT",
     "Gold catches a second bid as geopolitical risk joins the fiscal one",
-    "Two hedges, one metal. Real-money allocations continue to grind higher.",
-    0.75,
-    0.09
+    "Two hedges, one metal. Real-money allocations continue to grind higher."
   ),
   article(
     "2025-06-sx5e-energy",
@@ -575,9 +463,7 @@ export const NEWS: NewsArticle[] = [
     "SX5E",
     "Il Sole 24 Ore",
     "Euro Stoxx energy names lift the index as the oil premium sticks for a week",
-    "Banks are quieter. The tape is a commodity story with a European listing.",
-    0.5,
-    0.24
+    "Banks are quieter. The tape is a commodity story with a European listing."
   ),
   article(
     "2025-07-ixic-capex",
@@ -585,9 +471,7 @@ export const NEWS: NewsArticle[] = [
     "IXIC",
     "The Information",
     "Hyperscaler capex commentary stays large; Nasdaq grinds to a high",
-    "The DeepSeek scare is treated as a one-quarter event. Spending plans say otherwise.",
-    0.69,
-    0.13
+    "The DeepSeek scare is treated as a one-quarter event. Spending plans say otherwise."
   ),
   article(
     "2025-07-ks11-hbm2",
@@ -595,9 +479,7 @@ export const NEWS: NewsArticle[] = [
     "KS11",
     "Maeil Business",
     "KOSPI lifted by another round of HBM allocation rumours",
-    "Memory pricing is the cleaner tell. Foreigners return on the margin.",
-    0.64,
-    0.16
+    "Memory pricing is the cleaner tell. Foreigners return on the margin."
   ),
   article(
     "2025-07-dji-industrials2",
@@ -605,9 +487,7 @@ export const NEWS: NewsArticle[] = [
     "DJI",
     "Barron's",
     "Dow industrials participate as the ISM finally clears 50",
-    "A manufacturing pulse, not a boom. Enough to keep the index from being a leftover.",
-    0.56,
-    0.19
+    "A manufacturing pulse, not a boom. Enough to keep the index from being a leftover."
   ),
   article(
     "2025-08-gspc-jackson",
@@ -615,9 +495,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "FT",
     "Jackson Hole tilts dovish; S&P 500 prices a September cut",
-    "Labour-market cooling is the permission structure. Inflation is the risk to it.",
-    0.63,
-    0.15
+    "Labour-market cooling is the permission structure. Inflation is the risk to it."
   ),
   article(
     "2025-08-ftse-oil",
@@ -625,9 +503,7 @@ export const NEWS: NewsArticle[] = [
     "FTSE",
     "The Guardian",
     "FTSE 100 slips with crude as the war premium unwinds",
-    "The index's energy weight works both ways. Sterling does little to help.",
-    0.24,
-    0.49
+    "The index's energy weight works both ways. Sterling does little to help."
   ),
   article(
     "2025-09-gspc-cut2",
@@ -635,9 +511,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "WSJ",
     "Fed cuts again; S&P 500 makes a measured new high",
-    "Not a panic cut. Financial conditions ease without a disorderly dollar move.",
-    0.66,
-    0.14
+    "Not a panic cut. Financial conditions ease without a disorderly dollar move."
   ),
   article(
     "2025-09-bsesn-rbi",
@@ -645,9 +519,7 @@ export const NEWS: NewsArticle[] = [
     "BSESN",
     "Business Standard",
     "RBI holds with a dovish hitch; Sensex banks grind higher",
-    "Inflation is behaving. The current account is the quieter constraint.",
-    0.59,
-    0.17
+    "Inflation is behaving. The current account is the quieter constraint."
   ),
   article(
     "2025-09-hsi-property2",
@@ -655,9 +527,7 @@ export const NEWS: NewsArticle[] = [
     "HSI",
     "SCMP",
     "Hong Kong property measures disappoint; Hang Seng fades a summer bounce",
-    "Policy is still playing defence. The September 2024 playbook is not repeated.",
-    0.21,
-    0.61
+    "Policy is still playing defence. The September 2024 playbook is not repeated."
   ),
   article(
     "2025-10-gc-3000",
@@ -665,9 +535,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "Reuters",
     "Gold clears $3,000 as real-money allocations catch up with official buying",
-    "A round number, then another. The bid is structural until real yields reprice hard.",
-    0.82,
-    0.06
+    "A round number, then another. The bid is structural until real yields reprice hard."
   ),
   article(
     "2025-10-si-3000",
@@ -675,9 +543,7 @@ export const NEWS: NewsArticle[] = [
     "SI",
     "Kitco",
     "Silver gaps with gold; tightness in registered inventories adds a squeeze flavour",
-    "Industrial and monetary demand finally rhyme. Volatility is the cost of admission.",
-    0.77,
-    0.1
+    "Industrial and monetary demand finally rhyme. Volatility is the cost of admission."
   ),
   article(
     "2025-10-ssec-policy",
@@ -685,9 +551,7 @@ export const NEWS: NewsArticle[] = [
     "SSEC",
     "Caixin",
     "Shanghai Composite muted as a new policy package looks familiar",
-    "The bar is now the September 2024 episode. This one does not clear it.",
-    0.31,
-    0.41
+    "The bar is now the September 2024 episode. This one does not clear it."
   ),
   article(
     "2025-11-gspc-breadth",
@@ -695,9 +559,7 @@ export const NEWS: NewsArticle[] = [
     "GSPC",
     "WSJ",
     "S&P 500 breadth improves as equal-weight catches a bid",
-    "A healthier tape, if a less spectacular one. Earnings, not multiple, do the work.",
-    0.6,
-    0.16
+    "A healthier tape, if a less spectacular one. Earnings, not multiple, do the work."
   ),
   article(
     "2025-11-sx5e-pmis",
@@ -705,9 +567,7 @@ export const NEWS: NewsArticle[] = [
     "SX5E",
     "Reuters",
     "Euro-area PMIs stabilize; Euro Stoxx banks lead a quiet grind",
-    "Not a re-acceleration. Enough to keep the ECB on a shallow path.",
-    0.53,
-    0.2
+    "Not a re-acceleration. Enough to keep the ECB on a shallow path."
   ),
   article(
     "2025-11-cl-glut",
@@ -715,9 +575,7 @@ export const NEWS: NewsArticle[] = [
     "CL",
     "IEA",
     "IEA flags a 2026 surplus; WTI slides toward the mid-50s",
-    "Non-OPEC supply is the story. Demand is fine. The call on OPEC is not.",
-    0.13,
-    0.72
+    "Non-OPEC supply is the story. Demand is fine. The call on OPEC is not."
   ),
   article(
     "2025-12-gc-year",
@@ -725,9 +583,7 @@ export const NEWS: NewsArticle[] = [
     "GC",
     "World Gold Council",
     "Gold heads for a second outsized year as reserve managers stay in the market",
-    "The allocation shift is slow and one-way. Pullbacks remain bought.",
-    0.73,
-    0.1
+    "The allocation shift is slow and one-way. Pullbacks remain bought."
   ),
   article(
     "2025-12-nsei-fii2",
@@ -735,9 +591,7 @@ export const NEWS: NewsArticle[] = [
     "NSEI",
     "Economic Times",
     "Nifty ends the year near records as SIP flows offset a thin FII year",
-    "Domestic savings are the structural bid. Valuations remain the tactical one.",
-    0.62,
-    0.15
+    "Domestic savings are the structural bid. Valuations remain the tactical one."
   ),
   article(
     "2025-12-dji-yearend",
@@ -745,10 +599,6 @@ export const NEWS: NewsArticle[] = [
     "DJI",
     "Barron's",
     "Dow industrials finish a workmanlike year; no melt-up, no accident",
-    "Cash-flow compounding. The unfashionable way to keep up with a 14-asset book.",
-    0.51,
-    0.2
+    "Cash-flow compounding. The unfashionable way to keep up with a 14-asset book."
   ),
 ];
-
-export const NEWS_BY_ID = Object.fromEntries(NEWS.map((n) => [n.id, n]));
