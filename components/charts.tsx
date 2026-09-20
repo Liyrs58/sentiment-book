@@ -108,7 +108,7 @@ export function EquityPath({
           width={box.w}
           height={box.h}
           data={data}
-          margin={{ top: 12, right: 44, left: 0, bottom: 4 }}
+          margin={{ top: 18, right: 44, left: 4, bottom: 4 }}
           onClick={(state) => {
             const label = state?.activeLabel;
             const point = data.find((d) => d.label === label);
@@ -128,8 +128,16 @@ export function EquityPath({
             tickLine={false}
             axisLine={false}
             domain={[Math.floor(min - pad), Math.ceil(max + pad)]}
-            width={32}
-          />
+            width={40}
+          >
+            <Label
+              value="index"
+              position="insideTopLeft"
+              fill="#9A9186"
+              fontSize={10}
+              offset={-2}
+            />
+          </YAxis>
           <Tooltip content={<Tip />} />
           {showBench ? (
             <Line

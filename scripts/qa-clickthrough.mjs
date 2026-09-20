@@ -51,6 +51,11 @@ async function main() {
     (await page.getByText("Chip filters tone · Headline applies shock.").count()) > 0,
     "microcopy"
   );
+  record(
+    "Score key",
+    (await page.getByText("Score = mean(").count()) > 0,
+    "P+ − P− range"
+  );
 
   const edition = page.getByLabel("Edition date");
   const firstHeadline = page.locator("aside h3").first();
@@ -200,12 +205,12 @@ async function main() {
   );
 
   const editionBefore = await edition.inputValue();
-  await page.getByRole("button", { name: "Rebalance book" }).click();
+  await page.getByRole("button", { name: "Next edition" }).click();
   await page.waitForTimeout(200);
   const editionAfter = await edition.inputValue();
-  const reNote = await page.getByText(/Rebalanced|No later edition/i).count();
+  const reNote = await page.getByText(/Opened next edition|No later edition/i).count();
   record(
-    "Rebalance",
+    "Next edition",
     editionAfter !== editionBefore || reNote > 0,
     `${editionBefore} → ${editionAfter}`
   );
@@ -246,6 +251,23 @@ async function main() {
     `${monthBeforeClick} → ${monthAfterClick}`
   );
 
+  record(
+    "Equal-weight legend",
+    (await page.getByText("Equal-weight book").count()) > 0 &&
+      (await page.getByText(/index = 100 at/i).count()) > 0,
+    "legend + index units"
+  );
+  record(
+    "Model caption",
+    (await page.getByText("Base Case mixes both").count()) > 0,
+    "mixer key"
+  );
+  record(
+    "Lexicon disclaimer",
+    (await page.getByText("Offline lexicon").count()) > 0,
+    "not live FinBERT"
+  );
+
   await page.getByRole("button", { name: "Model Portfolio" }).click();
   await page.waitForTimeout(80);
   const modelOff = await page.getByRole("button", { name: "Model Portfolio" }).getAttribute("aria-pressed");
@@ -253,8 +275,19 @@ async function main() {
   record("Chart legend toggle", modelOff === "false", `aria-pressed after click ${modelOff}`);
 
   await page.setViewportSize({ width: 390, height: 800 });
-  const rebalVis = await page.getByRole("button", { name: "Rebalance book" }).isVisible();
-  record("Mobile 390px controls visible", rebalVis, rebalVis ? "rebalance visible" : "hidden");
+  const nextVis = await page.getByRole("button", { name: "Next edition" }).isVisible();
+  const editionBox = await page.getByLabel("Edition date").boundingBox();
+  const nextBox = await page.getByRole("button", { name: "Next edition" }).boundingBox();
+  const crowded =
+    editionBox &&
+    nextBox &&
+    Math.abs(editionBox.y - nextBox.y) < 8 &&
+    editionBox.x + editionBox.width > nextBox.x - 4;
+  record(
+    "Mobile 390px controls visible",
+    nextVis && !crowded,
+    crowded ? "edition and Next edition overlap" : nextVis ? "stacked" : "hidden"
+  );
 
   await browser.close();
   const failed = results.filter((r) => !r.ok);

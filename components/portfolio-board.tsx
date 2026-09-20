@@ -51,14 +51,14 @@ export function AllocationList({
       </div>
 
       {snapshot.shock ? (
-        <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
-          <p className="text-[12px] leading-4 text-[#6B7280]">
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-2 border-l-2 border-[#111827] pl-3">
+          <p className="text-[13px] leading-5 font-semibold text-[#111827]">
             Shock on {deskName(ASSET_BY_ID[snapshot.shock.ticker], snapshot.shock.ticker)} ({snapshot.shock.ticker}): {snapshot.shock.headline}
           </p>
           <button
             type="button"
             onClick={onClearShock}
-            className="text-[11px] tracking-wide text-[#111827] uppercase"
+            className="text-[11px] font-semibold tracking-wide text-[#111827] uppercase"
           >
             Clear shock
           </button>

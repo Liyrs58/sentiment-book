@@ -25,7 +25,6 @@ export function Desk() {
   const [risk, setRisk] = useState<RiskProfile>("balanced");
   const [sleeveId, setSleeveId] = useState<string | null>(null);
   const [showModel, setShowModel] = useState(true);
-  const [showBench, setShowBench] = useState(true);
   const [note, setNote] = useState<string | null>(null);
 
   const snapshot = useMemo(
@@ -77,7 +76,7 @@ export function Desk() {
     setMonth(next);
     setShockId(null);
     setLiveShock(null);
-    setNote(`Rebalanced. Next mark is ${editionDate(next)}. Shock cleared.`);
+        setNote(`Opened next edition · ${editionDate(next)}. Book marked; shock cleared.`);
   }
 
   return (
@@ -86,18 +85,18 @@ export function Desk() {
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
           <section>
             <header className="mb-6">
-              <h1 className="font-serif text-[2.55rem] leading-[0.95] font-semibold tracking-[-0.02em] text-[#111827] uppercase sm:text-[3.15rem]">
+              <h1 className="font-serif text-[2.15rem] leading-[0.95] font-semibold tracking-[-0.02em] text-[#111827] uppercase sm:text-[3.15rem]">
                 SENTIMENT&nbsp;BOOK
               </h1>
-              <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
                 <p className="text-[11px] font-semibold tracking-[0.16em] text-[#111827] uppercase">
                   News · Sentiment · Portfolio construction
                 </p>
-                <label className="text-[13px] text-[#6B7280]">
+                <label className="min-w-0 text-[13px] text-[#6B7280]">
                   <span className="sr-only">Edition</span>
                   <select
                     aria-label="Edition date"
-                    className="cursor-pointer bg-transparent text-right text-[13px] text-[#6B7280] outline-none"
+                    className="max-w-full cursor-pointer bg-transparent text-left text-[13px] text-[#6B7280] outline-none sm:text-right"
                     value={month}
                     onChange={(e) => changeMonth(e.target.value)}
                   >
@@ -130,34 +129,39 @@ export function Desk() {
           </section>
 
           <section className="lg:border-l lg:border-[#D6D0C6] lg:pl-10">
-            <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-[#D6D0C6] pb-3">
-              <p className="text-[11px] font-semibold tracking-[0.16em] text-[#111827] uppercase">
-                Portfolio construction
-              </p>
-              <div className="flex flex-wrap items-center gap-3 text-[12px] text-[#6B7280]">
-                <label className="flex items-center gap-1">
-                  Model:
-                  <select
-                    aria-label="Allocation model"
-                    className="cursor-pointer bg-transparent text-[#111827] outline-none"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value as ModelKey)}
+            <header className="mb-6 border-b border-[#D6D0C6] pb-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-[#111827] uppercase">
+                  Portfolio construction
+                </p>
+                <div className="flex min-w-0 flex-col items-start gap-1 sm:items-end">
+                  <label className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                    Model:
+                    <select
+                      aria-label="Allocation model"
+                      className="cursor-pointer bg-transparent text-[#111827] outline-none"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value as ModelKey)}
+                    >
+                      <option value="super">Base Case</option>
+                      <option value="nlp">Sentiment</option>
+                      <option value="market">Market</option>
+                      <option value="equal">Equal</option>
+                    </select>
+                  </label>
+                  <p className="max-w-[22rem] text-[11px] leading-4 text-[#9A9186] sm:text-right">
+                    Base Case mixes both. Sentiment uses news scores. Market uses returns and vol. Equal is 1/14.
+                  </p>
+                  <button
+                    type="button"
+                    aria-label="Next edition"
+                    onClick={rebalance}
+                    className="mt-1 border border-[#111827] px-2 py-0.5 text-[11px] tracking-[0.12em] text-[#111827] uppercase"
                   >
-                    <option value="super">Base Case</option>
-                    <option value="nlp">Sentiment</option>
-                    <option value="market">Market</option>
-                    <option value="equal">Equal</option>
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  aria-label="Rebalance book"
-                  onClick={rebalance}
-                  className="border border-[#111827] px-2 py-0.5 text-[11px] tracking-[0.12em] text-[#111827] uppercase rounded-none"
-                >
-                  Rebalance
-                </button>
-                <span>{editionCloseStamp(month)}</span>
+                    Next edition
+                  </button>
+                  <span className="text-[11px] text-[#6B7280]">{editionCloseStamp(month)}</span>
+                </div>
               </div>
             </header>
 
@@ -198,9 +202,14 @@ export function Desk() {
               <EquityPath
                 data={path}
                 showModel={showModel}
-                showBench={showBench}
+                showBench
                 onSelectMonth={changeMonth}
               />
+              <p className="mt-1 text-[11px] leading-4 text-[#9A9186]">
+                {path[0]
+                  ? `index = 100 at ${path[0].label}`
+                  : "index = 100 at the first month in view"}
+              </p>
               <p className="mt-1 flex flex-wrap gap-4 text-[11px] text-[#6B7280]">
                 <button
                   type="button"
@@ -211,15 +220,10 @@ export function Desk() {
                   <span className="mr-2 inline-block h-[2px] w-5 bg-current align-middle" />
                   Model Portfolio
                 </button>
-                <button
-                  type="button"
-                  aria-pressed={showBench}
-                  onClick={() => setShowBench((v) => !v)}
-                  className={showBench ? "text-[#6B7280]" : "text-[#C9C2B6] line-through"}
-                >
+                <span className="text-[#6B7280]">
                   <span className="mr-2 inline-block w-5 border-t border-dashed border-current align-middle" />
                   Equal-weight book
-                </button>
+                </span>
               </p>
               <p className="mt-2 text-[11px] leading-4 text-[#9A9186]">
                 Walk-forward on the shipped sample tape (weights_t → returns_t+1). Not HARLF 2018–24 reported returns.

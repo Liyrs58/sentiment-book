@@ -125,6 +125,9 @@ export function NewsWire({
       <p className="mt-2 text-[11px] leading-4 text-[#6B7280]">
         Chip filters tone · Headline applies shock.
       </p>
+      <p className="mt-1 text-[11px] leading-4 text-[#9A9186]">
+        Score = mean(P₊−P₋), [−1,+1]
+      </p>
 
       <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
         <SourceChip
@@ -172,14 +175,14 @@ export function NewsWire({
               aria-pressed={on}
               aria-label={`Filter ${item.label} sentiment`}
               onClick={() => setTone(item.id)}
-              className={`border px-1.5 py-px text-[10px] tracking-[0.12em] uppercase ${
+              className={`border-b pb-px text-[11px] tracking-wide uppercase ${
                 on && item.id === "pos"
                   ? "border-[#0F766E] text-[#0F766E]"
                   : on && item.id === "neg"
                     ? "border-[#9A3412] text-[#9A3412]"
                     : on
                       ? "border-[#111827] text-[#111827]"
-                      : "border-[#C9C2B6] text-[#6B7280]"
+                      : "border-transparent text-[#6B7280]"
               }`}
             >
               {item.label}
@@ -242,6 +245,9 @@ export function NewsWire({
         >
           {compose ? "Hide live score" : "Score a print"}
         </button>
+        <p className="mt-1 text-[11px] leading-4 text-[#9A9186]">
+          Offline lexicon — not live FinBERT
+        </p>
         {compose ? (
           <form
             className="mt-2"
