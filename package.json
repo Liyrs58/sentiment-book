@@ -10,7 +10,9 @@
     "qa": "node scripts/qa-clickthrough.mjs",
     "pipeline": "tsx scripts/run-pipeline.mts",
     "check:free-tier": "tsx scripts/check-free-tier.mts",
-    "score:finbert": "tsx scripts/score-finbert.mjs"
+    "score:finbert": "tsx scripts/score-finbert.mjs",
+    "ensure:pitch": "node scripts/ensure-investor-pitch.cjs",
+    "prebuild": "node scripts/ensure-investor-pitch.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
