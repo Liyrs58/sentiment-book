@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start --port 43173 --hostname 127.0.0.1",
     "lint": "eslint",
-    "qa": "node scripts/qa-clickthrough.mjs"
+    "qa": "node scripts/qa-clickthrough.mjs",
+    "pipeline": "tsx scripts/run-pipeline.mts",
+    "score:finbert": "tsx scripts/score-finbert.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -30,6 +32,7 @@
     "eslint-config-next": "16.3.5",
     "playwright-core": "^1.63.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
