@@ -1,7 +1,8 @@
 import { ASSET_BY_ID, ASSET_IDS, EQUAL_WEIGHT } from "./assets";
 import { monthSentiment } from "./aggregate";
+import { CONSTRAINTS, MIN_W, project } from "./constraints";
+import { articleById } from "./corpus";
 import { metricsByMonth } from "./market";
-import { NEWS_BY_ID } from "./news";
 import type {
   AgentOutput,
   AllocationSnapshot,
@@ -10,45 +11,11 @@ import type {
   WeightMap,
 } from "./types";
 
-const MIN_W = 0.012;
-const MAX_W = 0.2;
-
 function softmax(values: number[], temperature = 0.55): number[] {
   const max = Math.max(...values);
   const exps = values.map((v) => Math.exp((v - max) / temperature));
   const sum = exps.reduce((a, b) => a + b, 0);
   return exps.map((e) => e / sum);
-}
-
-function project(raw: WeightMap): WeightMap {
-  const ids = ASSET_IDS;
-  let w = Object.fromEntries(
-    ids.map((id) => [id, Math.min(MAX_W, Math.max(MIN_W, raw[id] ?? MIN_W))])
-  );
-  for (let k = 0; k < 8; k += 1) {
-    const sum = ids.reduce((a, id) => a + w[id], 0);
-    w = Object.fromEntries(ids.map((id) => [id, w[id] / sum]));
-    let overflow = 0;
-    for (const id of ids) {
-      if (w[id] > MAX_W) {
-        overflow += w[id] - MAX_W;
-        w[id] = MAX_W;
-      }
-      if (w[id] < MIN_W) {
-        overflow -= MIN_W - w[id];
-        w[id] = MIN_W;
-      }
-    }
-    if (Math.abs(overflow) < 1e-8) break;
-    const free = ids.filter((id) => w[id] > MIN_W + 1e-9 && w[id] < MAX_W - 1e-9);
-    const freeSum = free.reduce((a, id) => a + w[id], 0);
-    if (free.length === 0 || freeSum <= 0) break;
-    for (const id of free) {
-      w[id] += overflow * (w[id] / freeSum);
-    }
-  }
-  const sum = ids.reduce((a, id) => a + w[id], 0);
-  return Object.fromEntries(ids.map((id) => [id, w[id] / sum]));
 }
 
 function mix(a: WeightMap, b: WeightMap, t: number): WeightMap {
@@ -97,6 +64,16 @@ export function tiltRisk(weights: WeightMap, profile: RiskProfile): WeightMap {
   return project(scaled);
 }
 
+/**
+ * Construct a 14-name book from monthly market metrics + FinBERT-style S_t.
+ *
+ * Hierarchy matches HARLF (paper §§5–7) as an inspectable mixer, not trained
+ * SB3/PyTorch policies: PPO/SAC on market features, DDPG/TD3 on NLP features,
+ * two meta blends, super-agent mix α_NLP.
+ *
+ * Constraints: long-only, leverage 1, floor 1.2%, cap 20%, sum to 1,
+ * month-end rebalance with a one-month decision lag (see backtest).
+ */
 export function allocate(options: {
   month: string;
   shockArticleId?: string | null;
@@ -113,7 +90,7 @@ export function allocate(options: {
   const prev = book[idx > 0 ? months[idx - 1] : month];
 
   const extraArticle = options.shockArticleId
-    ? NEWS_BY_ID[options.shockArticleId]
+    ? articleById(options.shockArticleId)
     : undefined;
   const extra = options.liveShock
     ? {
@@ -182,13 +159,15 @@ export function allocate(options: {
         ? "risk-off"
         : "mixed";
 
+  const capNote = `long-only, no leverage, floor ${(CONSTRAINTS.minWeight * 100).toFixed(1)}%, cap ${(CONSTRAINTS.maxWeight * 100).toFixed(0)}%, month-end rebalance, lag ${CONSTRAINTS.decisionLagMonths}m`;
+
   const agents: AgentOutput[] = [
     agent(
       "ppo-mkt",
       1,
       "market",
       "PPO · momentum",
-      "PPO stand-in",
+      "PPO stand-in (not SB3)",
       "Softmax of 3-month compounded returns (long-only).",
       momentum
     ),
@@ -197,8 +176,8 @@ export function allocate(options: {
       1,
       "market",
       "SAC · risk parity",
-      "SAC stand-in",
-      "Inverse-volatility weights, capped and renormalised.",
+      "SAC stand-in (not SB3)",
+      "Inverse-volatility weights, projected onto the cap/floor simplex.",
       riskParity
     ),
     agent(
@@ -206,8 +185,8 @@ export function allocate(options: {
       1,
       "nlp",
       "DDPG · FinBERT",
-      "DDPG stand-in",
-      "Softmax of monthly S = mean(P_pos − P_neg).",
+      "DDPG stand-in (not SB3)",
+      "Softmax of monthly S = mean(P_pos − P_neg) from the scored corpus.",
       nlpRaw
     ),
     agent(
@@ -215,7 +194,7 @@ export function allocate(options: {
       1,
       "nlp",
       "TD3 · sentiment / vol",
-      "TD3 stand-in",
+      "TD3 stand-in (not SB3)",
       "NLP observation vector: sentiment scaled by realised vol.",
       nlpVol
     ),
@@ -224,7 +203,7 @@ export function allocate(options: {
       2,
       "meta-market",
       "Data meta-agent",
-      "3-layer MLP stand-in",
+      "Convex mixer (not a trained MLP)",
       "Blends momentum, risk-parity and Sharpe specialists.",
       metaMarket
     ),
@@ -233,8 +212,8 @@ export function allocate(options: {
       2,
       "meta-nlp",
       "NLP meta-agent",
-      "3-layer MLP stand-in",
-      "Blends raw FinBERT weights with vol-adjusted scores.",
+      "Convex mixer (not a trained MLP)",
+      "Blends raw FinBERT-style weights with vol-adjusted scores.",
       metaNlp
     ),
     agent(
@@ -243,7 +222,7 @@ export function allocate(options: {
       "super",
       "Super-agent",
       "Lookahead mixer",
-      `Cross-modal mix. α_NLP = ${(alpha * 100).toFixed(0)}%. Long-only, no leverage, max 20%.`,
+      `Cross-modal mix. α_NLP = ${(alpha * 100).toFixed(0)}%. ${capNote}.`,
       superWeights
     ),
   ];
@@ -255,6 +234,7 @@ export function allocate(options: {
     agents,
     superWeights,
     equalWeights: equalWeights(),
+    constraints: CONSTRAINTS,
   };
 
   if (extra) {

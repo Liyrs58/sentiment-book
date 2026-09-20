@@ -1,5 +1,5 @@
-import { ASSET_IDS, ASSETS, SAMPLE_MONTHS } from "./assets";
 import { allMonthSentiments } from "./aggregate";
+import { ASSET_IDS, ASSETS, SAMPLE_MONTHS } from "./assets";
 import type { MonthlyMetrics } from "./types";
 
 function mulberry32(seed: number) {
@@ -199,6 +199,8 @@ let cached: MarketBundle | null = null;
 export function getMarket(): MarketBundle {
   if (cached) return cached;
   const rng = mulberry32(25071856);
+  // Returns are a frozen seeded tape — independent of the scorer so that
+  // changing sentiment actually changes weights, not the underlying path.
   const sentiments = allMonthSentiments();
   const prices = { ...START_PRICES };
   const monthEndPrices: Record<string, Record<string, number>> = {};
@@ -218,14 +220,9 @@ export function getMarket(): MarketBundle {
         const id = asset.id;
         const drift = ANNUAL_DRIFT[id] / 252;
         const vol = ANNUAL_VOL[id] / Math.sqrt(252);
-        const sentPull = ((sent[id] ?? 0) * 0.011) / dates.length;
         const shock = (ASSET_SHOCKS[month]?.[id] ?? 0) / dates.length;
         const r =
-          drift +
-          BETA[id] * mkt +
-          vol * gauss(rng) * 0.92 +
-          sentPull +
-          shock;
+          drift + BETA[id] * mkt + vol * gauss(rng) * 0.92 + shock;
         prices[id] *= 1 + r;
         daily[id].push(r);
       }
@@ -236,6 +233,7 @@ export function getMarket(): MarketBundle {
     const vol: Record<string, number> = {};
     const sharpe: Record<string, number> = {};
     const sortino: Record<string, number> = {};
+    const calmar: Record<string, number> = {};
     const maxDrawdown: Record<string, number> = {};
     for (const id of ASSET_IDS) {
       const s = statsFromReturns(daily[id]);
@@ -244,6 +242,8 @@ export function getMarket(): MarketBundle {
       sharpe[id] = s.sharpe;
       sortino[id] = s.sortino;
       maxDrawdown[id] = s.mdd;
+      const annualised = (1 + s.compounded) ** 12 - 1;
+      calmar[id] = s.mdd < 0 ? annualised / Math.abs(s.mdd) : 0;
     }
     metrics.push({
       month,
@@ -251,6 +251,7 @@ export function getMarket(): MarketBundle {
       vol,
       sharpe,
       sortino,
+      calmar,
       maxDrawdown,
       sentiment: { ...sent },
       articleCount: { ...(sentiments[month]?.articleCount ?? {}) },
