@@ -68,7 +68,7 @@ export function runResearchPipeline(month = "2025-05"): PipelineReport {
       "ProsusAI/finbert weights — optional; lexicon softmax is the offline equivalent.",
       "Stable-Baselines3 PPO/SAC/DDPG/TD3 and PyTorch meta-agents — heuristic mixers with those labels.",
       "Google News live scrape — optional; sample corpus is the default.",
-      "Yahoo Finance 2003–2024 tape — seeded 2024–25 sample returns, not the paper’s yfinance dump.",
+      "Yahoo Finance 2003–2024 tape — seeded 2024–25 sample returns, not the paper's yfinance dump.",
       "HARLF reported 26% CAGR / Sharpe 1.2 on 2018–24 — not claimed here.",
     ],
   };

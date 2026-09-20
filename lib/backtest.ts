@@ -1,5 +1,6 @@
 import { SAMPLE_MONTHS } from "./assets";
 import { allocate } from "./allocator";
+import { CONSTRAINTS } from "./constraints";
 import { getMarket } from "./market";
 import type { BacktestResult, BacktestStats, EquityPoint, WeightMap } from "./types";
 
@@ -13,7 +14,7 @@ function stats(navs: number[], months: number): BacktestStats {
     rets.reduce((a, b) => a + (b - mean) ** 2, 0) / Math.max(rets.length, 1);
   const volM = Math.sqrt(varr);
   const vol = volM * Math.sqrt(12);
-  const cagr = navs[navs.length - 1] ** (12 / months) - 1;
+  const cagr = navs[navs.length - 1] ** (12 / Math.max(months, 1)) - 1;
   const sharpe = volM > 0 ? (mean / volM) * Math.sqrt(12) : 0;
   let peak = navs[0];
   let mdd = 0;
@@ -31,6 +32,13 @@ function stats(navs: number[], months: number): BacktestStats {
   };
 }
 
+/**
+ * Walk-forward backtest on the shipped sample tape.
+ *
+ * Rule: form weights from month t observations (sentiment + trailing metrics)
+ * and apply them to month t+1 returns. Month 0 uses equal weight (no look-ahead).
+ * Monthly rebalance, long-only, no leverage.
+ */
 export function runBacktest(throughMonth?: string): BacktestResult {
   const market = getMarket();
   const last = throughMonth ?? SAMPLE_MONTHS[SAMPLE_MONTHS.length - 1];
@@ -42,15 +50,16 @@ export function runBacktest(throughMonth?: string): BacktestResult {
     { month: "start", harlf: 1, equal: 1, spx: 1 },
   ];
 
-  let prevWeights: WeightMap | null = null;
-  for (const month of months) {
+  let live: WeightMap | null = null;
+  for (let i = 0; i < months.length; i += 1) {
+    const month = months[i];
     const metrics = market.metrics.find((m) => m.month === month);
     if (!metrics) continue;
-    const allocation = prevWeights ?? allocate({ month }).superWeights;
     const equal = allocate({ month }).equalWeights;
+    const allocation = live ?? equal;
     let h = 0;
     let e = 0;
-    for (const id of Object.keys(allocation)) {
+    for (const id of Object.keys(equal)) {
       h += allocation[id] * (metrics.returns[id] ?? 0);
       e += equal[id] * (metrics.returns[id] ?? 0);
     }
@@ -63,10 +72,10 @@ export function runBacktest(throughMonth?: string): BacktestResult {
       equal: equalNav,
       spx: spxNav,
     });
-    prevWeights = allocate({ month }).superWeights;
+    live = allocate({ month }).superWeights;
   }
 
-  const n = months.length;
+  const n = Math.max(months.length, 1);
   return {
     curve,
     harlf: stats(
@@ -81,5 +90,7 @@ export function runBacktest(throughMonth?: string): BacktestResult {
       curve.map((c) => c.spx),
       n
     ),
+    rule: `weights_t (from ${CONSTRAINTS.rebalance} t) → returns_{t+${CONSTRAINTS.decisionLagMonths}}; long-only, leverage ${CONSTRAINTS.leverage}, cap ${CONSTRAINTS.maxWeight}`,
+    months: n,
   };
 }
