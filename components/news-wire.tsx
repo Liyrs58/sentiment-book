@@ -1,22 +1,11 @@
 "use client";
 
-import { ASSET_BY_ID, ASSETS } from "@/lib/assets";
+import { ASSET_BY_ID, ASSETS, deskName, nameWithTicker } from "@/lib/assets";
 import { labelForScore, lexiconScore, signedScore } from "@/lib/sentiment";
-import { signedChip } from "@/lib/format";
+import { editionCloseStamp, shortDate, signedChip } from "@/lib/format";
 import { NEWS } from "@/lib/news";
 import type { FinbertScores, NewsArticle } from "@/lib/types";
 import { useMemo, useState } from "react";
-
-const CLOCKS = [
-  "08:41 ET",
-  "08:17 ET",
-  "07:52 ET",
-  "07:31 ET",
-  "07:08 ET",
-  "06:44 ET",
-  "06:19 ET",
-  "06:02 ET",
-];
 
 const TONES = [
   { id: "ALL", label: "All" },
@@ -26,6 +15,9 @@ const TONES = [
 ] as const;
 
 type ToneId = (typeof TONES)[number]["id"];
+
+/** Short masthead — never dump every outlet into the header. */
+const MASTHEAD_SOURCES = ["FT", "Reuters", "WSJ", "Bloomberg"] as const;
 
 export function NewsWire({
   month,
@@ -60,6 +52,10 @@ export function NewsWire({
     () => Array.from(new Set(NEWS.map((n) => n.source))).sort(),
     []
   );
+  const moreSources = sources.filter(
+    (s) => !(MASTHEAD_SOURCES as readonly string[]).includes(s)
+  );
+  const moreSelected = moreSources.includes(source);
 
   const rows = useMemo(() => {
     const pool = NEWS.filter((n) => n.month <= month)
@@ -107,45 +103,68 @@ export function NewsWire({
         <p className="text-[11px] font-semibold tracking-[0.14em] text-[#111827] uppercase">
           News wire
         </p>
-        <div className="flex flex-wrap items-center gap-2 text-[12px] text-[#6B7280]">
-          <label className="flex items-center gap-1">
-            <span className="text-[#C9C2B6]">|</span>
-            <select
-              aria-label="Filter by source"
-              className="cursor-pointer bg-transparent pr-1 text-[12px] text-[#4B5563] outline-none"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-            >
-              <option value="ALL">All Sources</option>
-              {sources.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-1">
-            <span className="text-[#C9C2B6]">|</span>
-            <select
-              aria-label="Filter by name"
-              className="cursor-pointer bg-transparent pr-1 text-[12px] text-[#4B5563] outline-none"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            >
-              <option value="ALL">All names</option>
-              {ASSETS.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.id}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <label className="text-[12px] text-[#6B7280]">
+          <span className="sr-only">Filter by name</span>
+          <select
+            aria-label="Filter by name"
+            className="max-w-[14rem] cursor-pointer bg-transparent text-right text-[12px] text-[#4B5563] outline-none"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          >
+            <option value="ALL">All names</option>
+            {ASSETS.map((a) => (
+              <option key={a.id} value={a.id}>
+                {nameWithTicker(a)}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <p className="mt-2 text-[11px] leading-4 text-[#6B7280]">
+        Chip filters tone · Headline applies shock.
+      </p>
+
+      <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
+        <SourceChip
+          label="All"
+          pressed={source === "ALL"}
+          ariaLabel="Filter source All"
+          onClick={() => setSource("ALL")}
+        />
+        {MASTHEAD_SOURCES.map((s) => (
+          <SourceChip
+            key={s}
+            label={s}
+            pressed={source === s}
+            ariaLabel={`Filter source ${s}`}
+            onClick={() => setSource(s)}
+          />
+        ))}
+        <label className="flex items-baseline gap-1 text-[11px] text-[#6B7280]">
+          <span className={moreSelected ? "border-b border-[#111827] text-[#111827]" : ""}>
+            More
+          </span>
+          <select
+            aria-label="Filter by source"
+            className="cursor-pointer bg-transparent text-[11px] text-[#4B5563] outline-none"
+            value={moreSelected ? source : ""}
+            onChange={(e) => setSource(e.target.value || "ALL")}
+          >
+            <option value="">—</option>
+            {moreSources.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
         {TONES.map((item) => {
           const on = tone === item.id;
+          const primary = on && item.id === "pos";
           return (
             <button
               key={item.id}
@@ -153,10 +172,12 @@ export function NewsWire({
               aria-pressed={on}
               aria-label={`Filter ${item.label} sentiment`}
               onClick={() => setTone(item.id)}
-              className={`rounded-full border px-2.5 py-[2px] text-[11px] tabular ${
-                on
-                  ? "border-[#0F766E] text-[#0F766E]"
-                  : "border-[#D6D0C6] text-[#6B7280]"
+              className={`rounded-[2px] pb-px text-[11px] tracking-wide uppercase ${
+                primary
+                  ? "border-b border-[#0F766E] text-[#0F766E]"
+                  : on
+                    ? "border-b border-[#111827] text-[#111827]"
+                    : "border-b border-transparent text-[#6B7280]"
               }`}
             >
               {item.label}
@@ -167,7 +188,7 @@ export function NewsWire({
           <button
             type="button"
             onClick={clearFilters}
-            className="ml-1 text-[11px] tracking-wide text-[#0F766E] uppercase"
+            className="ml-1 text-[11px] tracking-wide text-[#111827] uppercase"
           >
             Clear filters
             {sleeveLabel ? ` · ${sleeveLabel}` : ""}
@@ -181,42 +202,42 @@ export function NewsWire({
             No prints match those filters.
             <button
               type="button"
-              className="mt-2 block text-[11px] tracking-wide text-[#0F766E] uppercase"
+              className="mt-2 block text-[11px] tracking-wide text-[#111827] uppercase"
               onClick={clearFilters}
             >
               Clear filters
             </button>
           </li>
         ) : (
-          rows.map((article, i) => (
+          rows.map((article) => (
             <WireItem
               key={article.id}
               article={article}
-              clock={CLOCKS[i] ?? "06:00 ET"}
               active={selectedId === article.id}
               onShock={() =>
                 onSelect(selectedId === article.id ? null : article.id)
               }
-              onChip={() => setTone(labelForScore(signedScore(article.scores)))}
             />
           ))
         )}
       </ul>
 
       <div className="mt-auto border-t border-[#E7E1D6] pt-3">
-        <p className="tabular text-[12px] text-[#6B7280]">
-          09:24 ET
+        <p className="text-[12px] text-[#6B7280]">
+          {editionCloseStamp(month)}
           <span className="mx-2 text-[#C9C2B6]">|</span>
           {rows.length} stories
           <span className="mx-2 text-[#C9C2B6]">|</span>
           Sentiment aggregate:{" "}
-          <span className={aggregate >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}>
+          <span
+            className={`tabular ${aggregate >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
+          >
             {signedChip(aggregate)} {aggregate >= 0 ? "↗" : "↘"}
           </span>
         </p>
         <button
           type="button"
-          className="mt-2 text-[11px] tracking-wide text-[#0F766E] uppercase"
+          className="mt-2 text-[11px] tracking-wide text-[#111827] uppercase"
           onClick={() => setCompose((v) => !v)}
         >
           {compose ? "Hide live score" : "Score a print"}
@@ -247,13 +268,13 @@ export function NewsWire({
               >
                 {ASSETS.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.id}
+                    {nameWithTicker(a)}
                   </option>
                 ))}
               </select>
               <button
                 type="submit"
-                className="text-[11px] tracking-wide text-[#0F766E] uppercase"
+                className="text-[11px] tracking-wide text-[#111827] uppercase"
               >
                 Apply shock
               </button>
@@ -268,21 +289,44 @@ export function NewsWire({
   );
 }
 
+function SourceChip({
+  label,
+  pressed,
+  ariaLabel,
+  onClick,
+}: {
+  label: string;
+  pressed: boolean;
+  ariaLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      aria-label={ariaLabel}
+      onClick={onClick}
+      className={`rounded-[2px] pb-px text-[11px] tracking-wide uppercase ${
+        pressed
+          ? "border-b border-[#111827] text-[#111827]"
+          : "border-b border-transparent text-[#6B7280]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function WireItem({
   article,
-  clock,
   active,
   onShock,
-  onChip,
 }: {
   article: NewsArticle;
-  clock: string;
   active: boolean;
   onShock: () => void;
-  onChip: () => void;
 }) {
   const signed = signedScore(article.scores);
-  const lab = labelForScore(signed);
   const asset = ASSET_BY_ID[article.ticker];
   return (
     <li
@@ -295,27 +339,27 @@ function WireItem({
           </h3>
         </button>
         <div className="mt-0.5 flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            aria-label={`Filter ${lab} sentiment`}
-            onClick={onChip}
-            className={`tabular rounded-full border px-2 py-[1px] text-[11px] leading-5 ${
-              lab === "pos"
-                ? "border-[#0F766E] text-[#0F766E]"
-                : lab === "neg"
-                  ? "border-[#B45309] text-[#9A3412]"
-                  : "border-[#C9C2B6] text-[#6B7280]"
+          <span
+            data-score
+            className={`tabular text-[11px] leading-5 ${
+              signed >= 0.18
+                ? "text-[#0F766E]"
+                : signed <= -0.18
+                  ? "text-[#9A3412]"
+                  : "text-[#6B7280]"
             }`}
           >
             {signedChip(signed)}
-          </button>
-          <span className="tabular text-[11px] text-[#9CA3AF]">{clock}</span>
+          </span>
+          <span className="tabular text-[11px] text-[#9CA3AF]">
+            {shortDate(article.date)}
+          </span>
         </div>
       </div>
       <button type="button" onClick={onShock} className="mt-1 w-full text-left">
         <p className="text-[13px] leading-5 text-[#6B7280]">{article.dek}</p>
         <p className="mt-1 text-[12px] text-[#9A9186]">
-          {article.source} • {asset?.desk ?? "Markets"} • {asset?.region}
+          {article.source} • {deskName(asset, article.ticker)} • {asset?.region}
         </p>
       </button>
     </li>
