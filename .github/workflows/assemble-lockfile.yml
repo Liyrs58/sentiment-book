@@ -13,7 +13,7 @@ jobs:
       - name: Concatenate lockfile parts
         run: |
           set -euo pipefail
-          cat .lock-parts/p1 .lock-parts/p2 .lock-parts/p3 > package-lock.json
+          cat $(find .lock-parts -type f | sort) > package-lock.json
           python3 - << 'PY'
           import json, hashlib, pathlib
           p = pathlib.Path("package-lock.json")
