@@ -26,7 +26,7 @@ npm run pipeline    # scores → weights → backtest (no server)
 npm run dev         # desk on http://127.0.0.1:43173
 ```
 
-No API keys. Paper mode is the default.
+No API keys required for the research pipeline (lexicon scoring). Optional `NVIDIA_API_KEY` unlocks PM prose notes only. `LIVE_TRADING` is always false.
 
 ## Pipeline (what is real)
 
@@ -72,6 +72,29 @@ npm run score:finbert
 
 That writes `data/finbert-cache.json`. The dump is gitignored; the lexicon path stays the reproducible default.
 
+## Optional PM notes (NVIDIA NIM)
+
+Scoring stays **FinBERT-local dump or lexicon**. OpenAI and Anthropic are not used.
+
+Hosted NIM is OpenAI-compatible at `https://integrate.api.nvidia.com/v1` ([LLM APIs](https://docs.api.nvidia.com/nim/reference/llm-apis)). Get a key at [build.nvidia.com/settings](https://build.nvidia.com/settings).
+
+| Env | Role |
+| --- | --- |
+| `NVIDIA_API_KEY` | Optional. Unset → deterministic mock PM note. Badge **MOCK**. |
+| Model | Locked to `google/gemma-4-31b-it` (env overrides ignored). |
+| Base URL | Locked to `https://integrate.api.nvidia.com/v1`. |
+| `LLM_PROVIDER=mock` | Force mock even if a key is set. |
+| `LIVE_TRADING` | Always **false** — no broker. |
+
+NIM calls use `stream: true` and a **180s** timeout. Cold start can take ~2 minutes; non-stream requests may hang. `/api/pm-note` and `/api/pipeline?pm=1` set `maxDuration = 180`. Failures fall back to mock prose; badge **FALLBACK MOCK**.
+
+```bash
+cp .env.example .env.local
+# NVIDIA_API_KEY=nvapi-…
+```
+
+Desk masthead shows `backend` (lexicon / finbert-local / finbert-hf) and LLM badge. `GET /api/health` returns the same.
+
 ## What is stubbed
 
 | Piece | Status |
@@ -86,6 +109,7 @@ That writes `data/finbert-cache.json`. The dump is gitignored; the lexicon path 
 | Google News scrape | **Stub** — sample corpus is the driver |
 | Yahoo Finance 2003–2024 | **Stub** — seeded sample tape, not the paper’s yfinance dump |
 | HARLF 26% CAGR / Sharpe 1.2 (2018–24) | **Not claimed** |
+| PM notes | **Mock without key**; optional NIM `google/gemma-4-31b-it` |
 
 `GET /api/pipeline` returns the same report as `npm run pipeline`.
 
@@ -101,6 +125,7 @@ FT/Economist wire: Libre Franklin + Source Serif 4, `#FAF7F2`, teal `#0F766E` on
 | Score a print | Offline lexicon — not live FinBERT |
 | Model / Next edition | Base Case / Sentiment / Market / Equal; step one month |
 | Equity path | Walk-forward NAV; click a month to open that edition |
+| PM note | Optional mock or NVIDIA NIM prose (scoring unchanged) |
 
 Headless: `npm run qa` with the dev server already up.
 
@@ -116,9 +141,13 @@ lib/allocator.ts       Three-tier HARLF-style mixer
 lib/market.ts          Seeded monthly tape (returns independent of scorer)
 lib/backtest.ts        Walk-forward mark-to-market
 lib/pipeline.ts        End-to-end report
+lib/pm-note.ts         Optional NVIDIA NIM / mock PM prose
+lib/flags.ts           LIVE_TRADING=false + NIM lock
 lib/scrape.ts          Optional live scrape hook (off)
 app/api/sentiment      Score a headline
-app/api/pipeline       JSON pipeline report
+app/api/pipeline       JSON pipeline report (+ optional ?pm=1)
+app/api/pm-note        PM note (mock or NIM)
+app/api/health         Backend + LLM badges
 ```
 
 ## Licence
