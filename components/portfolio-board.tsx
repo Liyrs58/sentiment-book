@@ -2,6 +2,7 @@
 
 import type { AllocationSnapshot, RiskProfile, WeightMap } from "@/lib/types";
 import { SLEEVES, sleeveRows } from "@/lib/sleeves";
+import { ASSET_BY_ID, deskName } from "@/lib/assets";
 import { pct } from "@/lib/format";
 
 export function AllocationList({
@@ -13,6 +14,7 @@ export function AllocationList({
   activeSleeve,
   onSleeve,
   onClearShock,
+  why,
 }: {
   snapshot: AllocationSnapshot;
   weights: WeightMap;
@@ -22,6 +24,7 @@ export function AllocationList({
   activeSleeve: string | null;
   onSleeve: (id: string | null, tickers: string[]) => void;
   onClearShock: () => void;
+  why: string;
 }) {
   const rows = sleeveRows(weights, prior);
 
@@ -50,12 +53,12 @@ export function AllocationList({
       {snapshot.shock ? (
         <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
           <p className="text-[12px] leading-4 text-[#6B7280]">
-            Shock on {snapshot.shock.ticker}: {snapshot.shock.headline}
+            Shock on {deskName(ASSET_BY_ID[snapshot.shock.ticker], snapshot.shock.ticker)} ({snapshot.shock.ticker}): {snapshot.shock.headline}
           </p>
           <button
             type="button"
             onClick={onClearShock}
-            className="text-[11px] tracking-wide text-[#0F766E] uppercase"
+            className="text-[11px] tracking-wide text-[#111827] uppercase"
           >
             Clear shock
           </button>
@@ -76,10 +79,14 @@ export function AllocationList({
                   onSleeve(on ? null : row.id, sleeve?.ids ?? [])
                 }
                 className={`grid w-full grid-cols-[minmax(5.5rem,7.5rem)_2.2rem_minmax(3rem,1fr)_auto] items-center gap-x-2 text-left text-[13px] ${
-                  on ? "text-[#0F766E]" : "text-[#111827]"
+                  on ? "text-[#111827]" : "text-[#111827]"
                 }`}
               >
-                <span className="truncate">{row.label}</span>
+                <span
+                  className={`truncate ${on ? "border-b border-[#111827]" : ""}`}
+                >
+                  {row.label}
+                </span>
                 <span className="tabular text-right">
                   {Math.round(row.value * 100)}%
                 </span>
@@ -88,7 +95,7 @@ export function AllocationList({
                     className="block h-[11px]"
                     style={{
                       width: `${Math.min(100, row.value * 100)}%`,
-                      background: row.tone === "ink" ? "#6B7280" : "#0F766E",
+                      background: on ? "#111827" : "#6B7280",
                     }}
                   />
                 </span>
@@ -107,6 +114,7 @@ export function AllocationList({
           );
         })}
       </ul>
+      <p className="mt-3 text-[12px] leading-4 text-[#6B7280]">{why}</p>
     </section>
   );
 }

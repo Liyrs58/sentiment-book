@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import {
   CartesianGrid,
   Label,
   Line,
   LineChart,
   ReferenceDot,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -49,6 +49,25 @@ export function windowCurve(curve: EquityPoint[], month: string) {
   }));
 }
 
+function useFrameSize(minH = 220) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ w: 0, h: minH });
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const apply = () => {
+      const w = Math.round(node.getBoundingClientRect().width);
+      const h = Math.round(node.getBoundingClientRect().height) || minH;
+      if (w > 0) setBox({ w, h });
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, [minH]);
+  return { ref, box };
+}
+
 export function EquityPath({
   data,
   showModel,
@@ -60,9 +79,11 @@ export function EquityPath({
   showBench: boolean;
   onSelectMonth: (month: string) => void;
 }) {
+  const { ref, box } = useFrameSize(220);
+
   if (data.length === 0 || (!showModel && !showBench)) {
     return (
-      <div className="flex h-48 items-center text-sm text-[#6B7280]">
+      <div className="flex h-[220px] items-center text-sm text-[#6B7280]">
         No series selected. Use the legend to show the model or equal-weight path.
       </div>
     );
@@ -75,10 +96,17 @@ export function EquityPath({
   const min = Math.min(...lows);
   const max = Math.max(...lows);
   const pad = Math.max(4, (max - min) * 0.18);
+  const ready = box.w >= 8;
+
   return (
-    <div className="h-[220px] w-full cursor-pointer">
-      <ResponsiveContainer>
+    <div
+      ref={ref}
+      className="relative h-[220px] min-h-[220px] w-full cursor-pointer"
+    >
+      {ready ? (
         <LineChart
+          width={box.w}
+          height={box.h}
           data={data}
           margin={{ top: 12, right: 44, left: 0, bottom: 4 }}
           onClick={(state) => {
@@ -138,7 +166,12 @@ export function EquityPath({
             </ReferenceDot>
           ) : null}
         </LineChart>
-      </ResponsiveContainer>
+      ) : (
+        <div
+          className="absolute inset-0 border-b border-[#E4DDD2]"
+          aria-hidden
+        />
+      )}
     </div>
   );
 }
