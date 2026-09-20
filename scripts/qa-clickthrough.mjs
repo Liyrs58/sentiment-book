@@ -31,6 +31,16 @@ async function main() {
   const title = await page.locator("h1").innerText();
   record("Load Sentiment Book", /sentiment[\s\u00a0]*book/i.test(title), title);
   record("No fake clock", !(await page.getByText("09:24 ET").count()), "edition stamp only");
+  record("No arrows", !(await page.getByText("↗").count()) && !(await page.getByText("↘").count()), "signed +/− only");
+  const modelLabels = await page.getByLabel("Allocation model").locator("option").allInnerTexts();
+  record(
+    "Plain model names",
+    modelLabels.includes("Sentiment") &&
+      modelLabels.includes("Market") &&
+      modelLabels.includes("Equal") &&
+      !modelLabels.some((t) => /NLP meta|Data meta/i.test(t)),
+    modelLabels.join(" | ")
+  );
   record(
     "Chart disclaimer",
     (await page.getByText("Walk-forward on the shipped sample tape").count()) > 0,
@@ -131,9 +141,10 @@ async function main() {
   const eqBeforeShock = await text(page, "button[aria-label='Filter wire to Equities']");
   await headlineBtn.click();
   await page.waitForTimeout(200);
-  const shockNote = await page.getByText(/Shock on|News shock applied/i).count();
+  const shockNote = await page.getByText(/Shock on|print (lifts|cuts)/i).count();
+  const shockBp = await page.getByText(/\bbp\b/).count();
   const clearShock = page.getByRole("button", { name: "Clear shock" });
-  record("Headline shock", shockNote > 0 && (await clearShock.count()) > 0, `shock ui ${shockNote}`);
+  record("Headline shock", shockNote > 0 && (await clearShock.count()) > 0 && shockBp > 0, `shock ui ${shockNote} bp ${shockBp}`);
   if (await clearShock.count()) {
     await clearShock.click();
     await page.waitForTimeout(150);

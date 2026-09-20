@@ -8,7 +8,7 @@ import { allocate, tiltRisk } from "@/lib/allocator";
 import { ASSET_BY_ID, SAMPLE_MONTHS, deskName } from "@/lib/assets";
 import { runBacktest } from "@/lib/backtest";
 import { SLEEVES } from "@/lib/sleeves";
-import { editionCloseStamp, editionDate, pct, signedChip } from "@/lib/format";
+import { editionCloseStamp, editionDate, formatBp, pct, signedChip } from "@/lib/format";
 import type { FinbertScores, RiskProfile, WeightMap } from "@/lib/types";
 
 type ModelKey = "super" | "equal" | "nlp" | "market";
@@ -119,12 +119,12 @@ export function Desk() {
               onSelect={(id) => {
                 setLiveShock(null);
                 setShockId(id);
-                setNote(id ? "News shock applied to the NLP sleeve." : null);
+                setNote(null);
               }}
               onLiveShock={(payload) => {
                 setShockId(null);
                 setLiveShock(payload);
-                setNote("Live lexicon score applied as a shock.");
+                setNote(null);
               }}
             />
           </section>
@@ -144,16 +144,16 @@ export function Desk() {
                     onChange={(e) => setModel(e.target.value as ModelKey)}
                   >
                     <option value="super">Base Case</option>
-                    <option value="nlp">NLP meta</option>
-                    <option value="market">Data meta</option>
-                    <option value="equal">Equal weight</option>
+                    <option value="nlp">Sentiment</option>
+                    <option value="market">Market</option>
+                    <option value="equal">Equal</option>
                   </select>
                 </label>
                 <button
                   type="button"
                   aria-label="Rebalance book"
                   onClick={rebalance}
-                  className="border border-[#111827] px-2 py-0.5 text-[11px] tracking-[0.12em] text-[#111827] uppercase"
+                  className="border border-[#111827] px-2 py-0.5 text-[11px] tracking-[0.12em] text-[#111827] uppercase rounded-none"
                 >
                   Rebalance
                 </button>
@@ -191,7 +191,7 @@ export function Desk() {
                   <span
                     className={`tabular ${ytd >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
                   >
-                    {pct(ytd, 2)} {ytd >= 0 ? "↗" : "↘"}
+                    {pct(ytd, 2)}
                   </span>
                 </p>
               </div>
@@ -231,7 +231,7 @@ export function Desk() {
         <footer className="mt-8 flex flex-wrap items-end justify-between gap-3 border-t border-[#111827] pt-3 text-[11px] tracking-[0.08em] text-[#9A9186] uppercase">
           <p>Sample corpus · scorer → weights → walk-forward · seeded tape</p>
           <p className="normal-case tracking-normal">
-            All times ET · Past performance is not indicative of future results.
+            Past performance is not indicative of future results.
           </p>
         </footer>
       </div>
@@ -251,26 +251,40 @@ function whyTheseWeights(
   prior: WeightMap | null
 ): string {
   if (snapshot.shock) {
-    const asset = ASSET_BY_ID[snapshot.shock.ticker];
-    const name = deskName(asset, snapshot.shock.ticker);
+    const ticker = snapshot.shock.ticker;
+    const asset = ASSET_BY_ID[ticker];
+    const name = deskName(asset, ticker);
     const signed = snapshot.shock.signedDelta;
-    const dir = signed >= 0 ? "lifts" : "cuts";
-    const tilt = prior
-      ? (weights[snapshot.shock.ticker] ?? 0) - (prior[snapshot.shock.ticker] ?? 0)
-      : 0;
-    const tiltTxt =
-      prior && Math.abs(tilt) >= 0.002
-        ? ` Sleeve weight ${tilt >= 0 ? "up" : "down"} ${pct(tilt, 1)}.`
-        : "";
-    return `Selected print ${dir} ${name} in the NLP sleeve (S ${signedChip(signed)}).${tiltTxt} Mixer stays long-only, 20% cap.`;
+    const verb = signed >= 0 ? "lifts" : "cuts";
+    const bits: string[] = [];
+    if (prior) {
+      const tickerMove = (weights[ticker] ?? 0) - (prior[ticker] ?? 0);
+      bits.push(`${ticker} ${formatBp(tickerMove)}`);
+      const parents = SLEEVES.filter(
+        (s) => s.ids.includes(ticker) && s.ids.length > 1
+      );
+      const seen = new Set<string>();
+      for (const sleeve of parents) {
+        if (seen.has(sleeve.id)) continue;
+        seen.add(sleeve.id);
+        const d =
+          sleeve.ids.reduce((n, id) => n + (weights[id] ?? 0), 0) -
+          sleeve.ids.reduce((n, id) => n + (prior[id] ?? 0), 0);
+        if (Math.abs(d) >= 0.0005) {
+          bits.push(`${sleeve.label} ${formatBp(d)}`);
+        }
+      }
+    }
+    const move = bits.length ? bits.join("; ") : "book held inside the 20% cap";
+    return `${name} print ${verb} ${move}. S ${signedChip(signed)}. Long-only, 20% cap.`;
   }
   const modelLabel =
     model === "equal"
-      ? "Equal-weight book"
+      ? "Equal book"
       : model === "nlp"
-        ? "NLP meta-agent"
+        ? "Sentiment book"
         : model === "market"
-          ? "Data meta-agent"
+          ? "Market book"
           : "Base-case mixer";
   const riskLine =
     risk === "offensive"

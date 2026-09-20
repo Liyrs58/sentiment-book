@@ -2,7 +2,7 @@
 
 import { ASSET_BY_ID, ASSETS, deskName, nameWithTicker } from "@/lib/assets";
 import { labelForScore, lexiconScore, signedScore } from "@/lib/sentiment";
-import { editionCloseStamp, shortDate, signedChip } from "@/lib/format";
+import { clampWords, editionCloseStamp, scoreClass, shortDate, signedChip } from "@/lib/format";
 import { getDeskWire } from "@/lib/corpus";
 import type { FinbertScores, NewsArticle } from "@/lib/types";
 import { useMemo, useState } from "react";
@@ -165,7 +165,6 @@ export function NewsWire({
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
         {TONES.map((item) => {
           const on = tone === item.id;
-          const primary = on && item.id === "pos";
           return (
             <button
               key={item.id}
@@ -173,12 +172,14 @@ export function NewsWire({
               aria-pressed={on}
               aria-label={`Filter ${item.label} sentiment`}
               onClick={() => setTone(item.id)}
-              className={`rounded-[2px] pb-px text-[11px] tracking-wide uppercase ${
-                primary
-                  ? "border-b border-[#0F766E] text-[#0F766E]"
-                  : on
-                    ? "border-b border-[#111827] text-[#111827]"
-                    : "border-b border-transparent text-[#6B7280]"
+              className={`border px-1.5 py-px text-[10px] tracking-[0.12em] uppercase ${
+                on && item.id === "pos"
+                  ? "border-[#0F766E] text-[#0F766E]"
+                  : on && item.id === "neg"
+                    ? "border-[#9A3412] text-[#9A3412]"
+                    : on
+                      ? "border-[#111827] text-[#111827]"
+                      : "border-[#C9C2B6] text-[#6B7280]"
               }`}
             >
               {item.label}
@@ -230,10 +231,8 @@ export function NewsWire({
           {rows.length} stories
           <span className="mx-2 text-[#C9C2B6]">|</span>
           Sentiment aggregate:{" "}
-          <span
-            className={`tabular ${aggregate >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
-          >
-            {signedChip(aggregate)} {aggregate >= 0 ? "↗" : "↘"}
+          <span className={`tabular ${scoreClass(aggregate)}`}>
+            {signedChip(aggregate)}
           </span>
         </p>
         <button
@@ -307,10 +306,10 @@ function SourceChip({
       aria-pressed={pressed}
       aria-label={ariaLabel}
       onClick={onClick}
-      className={`rounded-[2px] pb-px text-[11px] tracking-wide uppercase ${
+      className={`border-b pb-px text-[11px] tracking-wide uppercase ${
         pressed
-          ? "border-b border-[#111827] text-[#111827]"
-          : "border-b border-transparent text-[#6B7280]"
+          ? "border-[#111827] text-[#111827]"
+          : "border-transparent text-[#6B7280]"
       }`}
     >
       {label}
@@ -340,16 +339,7 @@ function WireItem({
           </h3>
         </button>
         <div className="mt-0.5 flex shrink-0 items-center gap-2">
-          <span
-            data-score
-            className={`tabular text-[11px] leading-5 ${
-              signed >= 0.18
-                ? "text-[#0F766E]"
-                : signed <= -0.18
-                  ? "text-[#9A3412]"
-                  : "text-[#6B7280]"
-            }`}
-          >
+          <span data-score className={`tabular text-[11px] leading-5 ${scoreClass(signed)}`}>
             {signedChip(signed)}
           </span>
           <span className="tabular text-[11px] text-[#9CA3AF]">
@@ -358,7 +348,9 @@ function WireItem({
         </div>
       </div>
       <button type="button" onClick={onShock} className="mt-1 w-full text-left">
-        <p className="text-[13px] leading-5 text-[#6B7280]">{article.dek}</p>
+        <p className="dek-clamp text-[13px] leading-5 text-[#6B7280]">
+          {clampWords(article.dek)}
+        </p>
         <p className="mt-1 text-[12px] text-[#9A9186]">
           {article.source} • {deskName(asset, article.ticker)} • {asset?.region}
         </p>
