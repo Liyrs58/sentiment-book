@@ -4,13 +4,9 @@ import { scoreHeadlineSync } from "./sentiment";
 import type { NewsArticle, RawArticle } from "./types";
 
 const RESEARCH_SOURCES = [
-  "FT",
-  "Reuters",
-  "WSJ",
-  "Bloomberg",
-  "SCMP",
-  "Nikkei",
-  "Les Echos",
+  "Demo Financial Wire",
+  "Synthetic Research Feed",
+  "Simulated Market News",
 ] as const;
 
 const POS_HEAD = [
@@ -136,6 +132,9 @@ function researchArticles(): RawArticle[] {
           headline,
           dek,
           desk: false,
+          sourceType: "synthetic",
+          dataAsOf: date,
+          generated: true,
         });
       }
     }
@@ -145,7 +144,7 @@ function researchArticles(): RawArticle[] {
 
 let rawCache: RawArticle[] | null = null;
 
-/** Full sample corpus: editorial desk + generated research prints. No scores. */
+/** Full sample corpus: SYNTHETIC editorial desk + generated research prints. No scores. */
 export function getRawCorpus(): RawArticle[] {
   if (!rawCache) {
     rawCache = [...EDITORIAL_CORPUS, ...researchArticles()];
