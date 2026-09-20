@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hydrateFinbertCache } from "@/lib/finbert-cache";
 import { scoreHeadline } from "@/lib/sentiment";
 
 export async function POST(request: Request) {
@@ -10,6 +11,7 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  hydrateFinbertCache();
   const result = await scoreHeadline(text);
   return NextResponse.json({
     source: result.backend,

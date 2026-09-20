@@ -2,7 +2,8 @@ import { allocate } from "./allocator";
 import { ASSET_BY_ID, ASSET_IDS, deskName } from "./assets";
 import { runBacktest } from "./backtest";
 import { CONSTRAINTS, assertBook } from "./constraints";
-import { getRawCorpus, getScoredCorpus } from "./corpus";
+import { getRawCorpus, getScoredCorpus, resetScoredCorpus } from "./corpus";
+import { hydrateFinbertCache } from "./finbert-cache";
 import { activeBackend, signedScore } from "./sentiment";
 import type { PipelineReport } from "./types";
 
@@ -13,6 +14,8 @@ import type { PipelineReport } from "./types";
  * Live scrape is optional and is not required for this path.
  */
 export function runResearchPipeline(month = "2025-05"): PipelineReport {
+  hydrateFinbertCache();
+  resetScoredCorpus();
   const { backend, note } = activeBackend();
   const scored = getScoredCorpus();
   const raw = getRawCorpus();
