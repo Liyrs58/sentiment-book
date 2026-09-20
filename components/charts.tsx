@@ -27,7 +27,7 @@ function Tip({ active, payload, label }: TipProps) {
     <div className="border border-[#C9C2B6] bg-[#FAF7F2] px-2 py-1.5 text-xs">
       <p className="mb-1 text-[#6B7280]">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} className="tabular" style={{ color: p.color }}>
+        <p key={p.name} className="score" style={{ color: p.color }}>
           {p.name} {p.value.toFixed(2)}
         </p>
       ))}
@@ -36,9 +36,10 @@ function Tip({ active, payload, label }: TipProps) {
 }
 
 export function windowCurve(curve: EquityPoint[], month: string) {
-  const cut = curve
-    .filter((p) => p.month !== "start" && p.month <= month)
-    .slice(-6);
+  const year = month.slice(0, 4);
+  const cut = curve.filter(
+    (p) => p.month !== "start" && p.month.startsWith(year) && p.month <= month
+  );
   if (cut.length === 0) return [];
   const base = cut[0];
   return cut.map((p) => ({
@@ -118,13 +119,13 @@ export function EquityPath({
           <CartesianGrid stroke="#E4DDD2" strokeDasharray="3 4" vertical={false} />
           <XAxis
             dataKey="label"
-            tick={{ fill: "#6B7280", fontSize: 11 }}
+            tick={{ fill: "#6B7280", fontSize: 11, fontFamily: "IBM Plex Mono, ui-monospace, monospace" }}
             tickLine={false}
             axisLine={{ stroke: RULE }}
             interval={0}
           />
           <YAxis
-            tick={{ fill: "#6B7280", fontSize: 11 }}
+            tick={{ fill: "#6B7280", fontSize: 11, fontFamily: "IBM Plex Mono, ui-monospace, monospace" }}
             tickLine={false}
             axisLine={false}
             domain={[Math.floor(min - pad), Math.ceil(max + pad)]}

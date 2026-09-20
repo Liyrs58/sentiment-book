@@ -46,7 +46,7 @@ export function AllocationList({
             <option value="offensive">Offensive</option>
             <option value="defensive">Defensive</option>
           </select>
-          <span className="mt-0.5 block tabular text-[#111827]">Total: 100%</span>
+          <span className="mt-0.5 block score text-[#111827]">Total: 100%</span>
         </label>
       </div>
 
@@ -87,7 +87,7 @@ export function AllocationList({
                 >
                   {row.label}
                 </span>
-                <span className="tabular text-right">
+                <span className="score text-right">
                   {Math.round(row.value * 100)}%
                 </span>
                 <span className="h-[11px]">
@@ -99,7 +99,7 @@ export function AllocationList({
                     }}
                   />
                 </span>
-                <span className="tabular text-right text-[12px] text-[#9CA3AF]">
+                <span className="score text-right text-[12px] text-[#9CA3AF]">
                   Benchmark {Math.round(row.benchmark * 100)}%
                   {row.delta !== null && Math.abs(row.delta) >= 0.0005 ? (
                     <span
