@@ -1,8 +1,16 @@
 # Sentiment Book
 
-A research desk for **news → FinBERT-style sentiment → constrained portfolio → walk-forward backtest**, laid out as an FT/Economist book. It implements the *structure* of HARLF (Coriat & Benhamou, 2025) on a shipped sample corpus so the pipeline runs fully offline.
+News → FinBERT-style sentiment → constrained portfolio → walk-forward backtest — an FT/Economist research desk on a shipped sample corpus. Offline by default.
 
-The UI is the desk. The engine is `npm run pipeline`.
+<video src="https://egqayuigreupgfhv.public.blob.vercel-storage.com/sentiment/investor-pitch.mp4" controls width="720"></video>
+
+[Watch investor pitch (~35s)](docs/demo/investor-pitch.mp4) · also served at `/demo/investor-pitch.mp4`
+
+**Live:** [https://sentiment-book.vercel.app](https://sentiment-book.vercel.app)
+
+Paper-only research path. `LIVE_TRADING` stays false. Optional Alpaca sleeve is off by default.
+
+---
 
 ## Papers and code
 
