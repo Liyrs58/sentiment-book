@@ -191,7 +191,7 @@ export function Desk() {
                   <span
                     className={`tabular ${ytd >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
                   >
-                    {pct(ytd, 2)} {ytd >= 0 ? "\u2197" : "\u2198"}
+                    {pct(ytd, 2)} {ytd >= 0 ? "↗" : "↘"}
                   </span>
                 </p>
               </div>
