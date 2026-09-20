@@ -3,7 +3,7 @@
 import { ASSET_BY_ID, ASSETS, deskName, nameWithTicker } from "@/lib/assets";
 import { labelForScore, lexiconScore, signedScore } from "@/lib/sentiment";
 import { editionCloseStamp, shortDate, signedChip } from "@/lib/format";
-import { NEWS } from "@/lib/news";
+import { getDeskWire } from "@/lib/corpus";
 import type { FinbertScores, NewsArticle } from "@/lib/types";
 import { useMemo, useState } from "react";
 
@@ -48,9 +48,10 @@ export function NewsWire({
   const [liveNote, setLiveNote] = useState<string | null>(null);
   const [compose, setCompose] = useState(false);
 
+  const wire = useMemo(() => getDeskWire(), []);
   const sources = useMemo(
-    () => Array.from(new Set(NEWS.map((n) => n.source))).sort(),
-    []
+    () => Array.from(new Set(wire.map((n) => n.source))).sort(),
+    [wire]
   );
   const moreSources = sources.filter(
     (s) => !(MASTHEAD_SOURCES as readonly string[]).includes(s)
@@ -58,7 +59,7 @@ export function NewsWire({
   const moreSelected = moreSources.includes(source);
 
   const rows = useMemo(() => {
-    const pool = NEWS.filter((n) => n.month <= month)
+    const pool = wire.filter((n) => n.month <= month)
       .slice()
       .sort((a, b) => b.date.localeCompare(a.date))
       .filter((a) => {
@@ -70,7 +71,7 @@ export function NewsWire({
         return true;
       });
     return pool.slice(0, 8);
-  }, [month, source, tone, name, sleeveIds]);
+  }, [wire, month, source, tone, name, sleeveIds]);
 
   const filtersOn =
     source !== "ALL" || tone !== "ALL" || name !== "ALL" || Boolean(sleeveIds);
