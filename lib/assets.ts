@@ -134,6 +134,19 @@ export const ASSET_IDS = ASSETS.map((a) => a.id);
 
 export const ASSET_BY_ID = Object.fromEntries(ASSETS.map((a) => [a.id, a]));
 
+/** Masthead name: S&P 500, Nasdaq, Dow — not GSPC/IXIC. */
+export function deskName(asset: Asset | undefined, fallback = ""): string {
+  if (!asset) return fallback;
+  if (asset.id === "IXIC") return "Nasdaq";
+  if (asset.id === "DJI") return "Dow";
+  if (asset.id === "BSESN") return "Sensex";
+  return asset.name;
+}
+
+export function nameWithTicker(asset: Asset): string {
+  return `${deskName(asset)} (${asset.id})`;
+}
+
 export const EQUAL_WEIGHT = 1 / ASSETS.length;
 
 export const SAMPLE_MONTHS = [

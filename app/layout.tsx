@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Libre_Franklin, Source_Serif_4 } from "next/font/google";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const libre = Libre_Franklin({
@@ -28,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${libre.variable} ${sourceSerif.variable} h-full`}
     >
       <body className="min-h-full bg-background text-foreground">
-        <TooltipProvider>{children}</TooltipProvider>
+        {children}
       </body>
     </html>
   );

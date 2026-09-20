@@ -18,8 +18,8 @@ Paper mode is the default: bundled headlines, FinBERT-like `{positive, negative,
 ## What you can do on the desk
 
 - Step the **edition** date (January 2024 – December 2025).
-- Filter the **wire** by source, name, and sentiment chips.
-- Click a headline to apply a **news shock**; click a chip to filter that tone.
+- Filter the **wire** by source chips, name, and sentiment.
+- Click a **headline** to apply a news shock. The printed score is display-only.
 - Change **Model** and **Risk profile**; hit **Rebalance** to mark the book and step one month.
 - Hover or click the **equity path**; use the legend to toggle series.
 
@@ -30,10 +30,10 @@ Run `npm run dev` with no env files. Click through the table. Nothing is decorat
 | Control | Where | What must happen |
 | --- | --- | --- |
 | Edition date | Left masthead | Wire, weights, YTD, and chart window follow the month. |
-| All Sources | News wire | List shows only that outlet. Empty → **Clear filters**. |
-| All names | News wire | List shows only that ticker. |
-| Sentiment chips All / Positive / Neutral / Negative | Under News wire | List filters by `S = P_pos − P_neg`. Active chip is teal. |
-| Story sentiment chip | Each print | Same tone filter as the header chips. |
+| All Sources | News wire masthead chips (FT / Reuters / WSJ / Bloomberg) + More | List shows only that outlet. Empty → **Clear filters**. |
+| All names | News wire | Editorial names (S&P 500, Nasdaq, Dow) with ticker secondary. |
+| Sentiment chips All / Positive / Neutral / Negative | Under News wire | List filters by `S = P_pos − P_neg`. Selected Positive is the one teal state; other chips are ink underline. |
+| Printed score | Each print | Display only — does not filter. |
 | Headline / dek | Each print | Applies a news shock. Bars show Δ vs the unshocked book. Click again to drop it. |
 | Clear shock | Allocations (when a shock is on) | Restores pre-shock weights. |
 | Score a print → Apply shock | Wire footer | Offline lexicon scores the headline (no keys). Book tilts. |
