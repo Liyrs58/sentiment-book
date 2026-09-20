@@ -13,6 +13,12 @@ jobs:
       - name: Concatenate lockfile parts
         run: |
           set -euo pipefail
+          count=$(find .lock-parts -type f | wc -l)
+          echo "parts=$count"
+          if [ "$count" -lt 12 ]; then
+            echo "waiting for all 12 parts"
+            exit 0
+          fi
           cat $(find .lock-parts -type f | sort) > package-lock.json
           python3 - << 'PY'
           import json, hashlib, pathlib
@@ -25,7 +31,14 @@ jobs:
           assert b"shadcn" not in data
           PY
       - name: Commit assembled lockfile
+        if: success()
         run: |
+          set -euo pipefail
+          count=$(find .lock-parts -type f | wc -l)
+          if [ "$count" -lt 12 ]; then
+            echo "skip commit until all parts exist"
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -rf .lock-parts
