@@ -1,0 +1,20 @@
+{
+  "name": "genuine-yahoo-gdelt",
+  "createdAt": "2026-09-20T23:11:24.172Z",
+  "tapeKind": "REAL_HISTORICAL_DATA",
+  "priceSource": "Yahoo Finance chart API v8",
+  "eventCount": 27,
+  "costBps": 10,
+  "oosStart": "2025-01",
+  "methodology": "Yahoo monthly closes (data/real) + legal timestamped events; lexicon baseline S=P_pos-P_neg; weights from month t → returns t+1; long-only project() floor/cap; one-way cost 10 bps on turnover; benchmark = GSPC; OOS from 2025-01.",
+  "limitations": [
+    "Small event sample; sparse coverage outside curated + GDELT titles.",
+    "Lexicon baseline — not ProsusAI FinBERT unless a dump is loaded separately.",
+    "Monthly resolution only; no intraday cutoff refinement.",
+    "SEC Atom sample may fall outside the 2024–25 window depending on fetch date.",
+    "Index/futures Yahoo symbols are research proxies — not tradeable ETF fills.",
+    "Do not compare these stats to the HARLF paper's reported CAGR/Sharpe."
+  ],
+  "months": ["2023-12","2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12","2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12"],
+  "oosMonths": ["2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12"]
+}
