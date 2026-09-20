@@ -16,7 +16,9 @@ export type FinbertScores = {
   neutral: number;
 };
 
-export type NewsArticle = {
+export type ScorerBackend = "finbert-local" | "finbert-hf" | "lexicon";
+
+export type RawArticle = {
   id: string;
   date: string;
   month: string;
@@ -24,8 +26,14 @@ export type NewsArticle = {
   source: string;
   headline: string;
   dek: string;
+  /** True when the print is part of the desk wire (editorial copy). */
+  desk?: boolean;
+};
+
+export type NewsArticle = RawArticle & {
   scores: FinbertScores;
-  scoredBy: "finbert-paper";
+  scoredBy: ScorerBackend;
+  signed: number;
 };
 
 export type MonthlyMetrics = {
@@ -34,6 +42,7 @@ export type MonthlyMetrics = {
   vol: Record<string, number>;
   sharpe: Record<string, number>;
   sortino: Record<string, number>;
+  calmar: Record<string, number>;
   maxDrawdown: Record<string, number>;
   sentiment: Record<string, number>;
   articleCount: Record<string, number>;
@@ -60,6 +69,7 @@ export type AllocationSnapshot = {
   agents: AgentOutput[];
   superWeights: WeightMap;
   equalWeights: WeightMap;
+  constraints: PortfolioConstraints;
   shock?: {
     articleId: string;
     ticker: string;
@@ -90,4 +100,34 @@ export type BacktestResult = {
   harlf: BacktestStats;
   equal: BacktestStats;
   spx: BacktestStats;
+  rule: string;
+  months: number;
+};
+
+export type PortfolioConstraints = {
+  longOnly: true;
+  leverage: 1;
+  minWeight: number;
+  maxWeight: number;
+  sumToOne: true;
+  rebalance: "month-end";
+  /** Weights formed from month t observations are applied to month t+1 returns. */
+  decisionLagMonths: 1;
+};
+
+export type PipelineReport = {
+  backend: ScorerBackend;
+  backendNote: string;
+  articlesScored: number;
+  sampleScores: {
+    id: string;
+    headline: string;
+    scores: FinbertScores;
+    signed: number;
+  }[];
+  month: string;
+  weights: { id: string; name: string; weight: number }[];
+  backtest: BacktestResult;
+  real: string[];
+  stubbed: string[];
 };

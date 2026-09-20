@@ -1,97 +1,126 @@
 # Sentiment Book
 
-A Next.js laboratory desk for **sentiment-driven portfolio allocation**, laid out as an FT/Economist-style book: news wire on the left, model allocations and an equity path on the right. Financial-news prints are scored in the FinBERT style, then passed through a three-tier allocator inspired by HARLF. The demo runs fully offline from bundled copy and precomputed class probabilities.
+A research desk for **news → FinBERT-style sentiment → constrained portfolio → walk-forward backtest**, laid out as an FT/Economist book. It implements the *structure* of HARLF (Coriat & Benhamou, 2025) on a shipped sample corpus so the pipeline runs fully offline.
 
-It is a **focused, inspectable demo** of the paper’s *structure* — news → scores → hierarchical weights → monthly equity path — not a reproduction of the authors’ 2018–2024 market backtest.
+The UI is the desk. The engine is `npm run pipeline`.
+
+## Papers and code
+
+- Benjamin Coriat & Eric Benhamou, [HARLF: Hierarchical Reinforcement Learning and Lightweight LLM-Driven Sentiment Integration for Financial Portfolio Optimization](https://arxiv.org/abs/2507.18560), arXiv:2507.18560 (IJCAI 2025 FinLLM workshop).
+- Dogu Araci, [FinBERT: Financial Sentiment Analysis with Pre-trained Language Models](https://arxiv.org/abs/1908.10063), arXiv:1908.10063. Weights: [ProsusAI/finBERT](https://github.com/ProsusAI/finBERT).
+- Related trader stack: [franjgs/llm-rl-finance-trader](https://github.com/franjgs/llm-rl-finance-trader).
+
+HARLF identity used here (paper Alg. 1):
+
+\[
+S_t = \frac{1}{N}\sum_i \bigl(P_{\text{positive},i} - P_{\text{negative},i}\bigr)
+\]
+
+Book: S&P 500, Nasdaq, Dow, CAC 40, FTSE 100, Euro Stoxx 50, Hang Seng, Shanghai Composite, Sensex, Nifty 50, KOSPI, gold, silver, WTI.
 
 ## Run
 
 ```bash
 npm install
-npm run dev
+npm run pipeline    # scores → weights → backtest (no server)
+npm run dev         # desk on http://127.0.0.1:43173
 ```
 
-App Router, TypeScript, Tailwind. Open the printed URL (this repo pins the dev server to port **43173**).
+No API keys. Paper mode is the default.
 
-Paper mode is the default: bundled headlines, FinBERT-like `{positive, negative, neutral}` triples, a 14-name book, monthly rebalance. **No API keys.** `Score a print` uses the offline lexicon in the browser.
+## Pipeline (what is real)
 
-## What you can do on the desk
+```
+sample corpus (headlines, no stored scores)
+        │
+        ▼
+   scorer  ── lexicon softmax (always) or FinBERT (optional)
+        │
+        ▼
+ monthly S_t per asset + Yahoo-style metrics on the shipped tape
+        │
+        ▼
+ constrained allocator (long-only, leverage 1, floor 1.2%, cap 20%, Σw = 1)
+        │
+        ▼
+ walk-forward: weights from month t applied to returns of t+1
+```
 
-- Step the **edition** date (January 2024 – December 2025).
-- Filter the **wire** by source chips, name, and sentiment.
-- Click a **headline** to apply a news shock. The printed score is display-only.
-- Change **Model** and **Risk profile**; hit **Rebalance** to mark the book and step one month.
-- Hover or click the **equity path**; use the legend to toggle series.
+Constraints live in `lib/constraints.ts`. Rebalance is month-end with a one-month decision lag. The equity path on the desk is that backtest, not a hardcoded series.
 
-## QA checklist (every control)
+Live Google News scrape is **optional and off**. `lib/scrape.ts` refuses `LIVE_SCRAPE=1` unless you wire an adapter. QA uses the sample corpus.
 
-Run `npm run dev` with no env files. Click through the table. Nothing is decorative: each control must change the wire, the bars, or the path. Repeatable headless pass: `npm run qa` (dev server already running).
+## Enable FinBERT
 
-| Control | Where | What must happen |
-| --- | --- | --- |
-| Edition date | Left masthead | Wire, weights, YTD, and chart window follow the month. |
-| All Sources | News wire masthead chips (FT / Reuters / WSJ / Bloomberg) + More | List shows only that outlet. Empty → **Clear filters**. |
-| All names | News wire | Editorial names (S&P 500, Nasdaq, Dow) with ticker secondary. |
-| Sentiment chips All / Positive / Neutral / Negative | Under News wire | List filters by `S = P_pos − P_neg`. Selected Positive is the one teal state; other chips are ink underline. |
-| Printed score | Each print | Display only — does not filter. |
-| Headline / dek | Each print | Applies a news shock. Bars show Δ vs the unshocked book. Click again to drop it. |
-| Clear shock | Allocations (when a shock is on) | Restores pre-shock weights. |
-| Score a print → Apply shock | Wire footer | Offline lexicon scores the headline (no keys). Book tilts. |
-| Model: Base Case / NLP meta / Data meta / Equal weight | Right header | Allocation bars switch immediately. |
-| Risk profile: Balanced / Offensive / Defensive | Allocations | Offensive lifts equities (esp. Nasdaq); Defensive lifts gold/commodities. |
-| Rebalance | Right header | Commits the current model + risk, advances one edition, clears shock. On Dec 2025, marks the book and says there is no later edition. |
-| Allocation sleeve (Equities, Gold, …) | Bars | Filters the wire to that sleeve. Click again to clear. |
-| Equity path | Chart | Hover shows a tooltip. Click a month to open that edition. |
-| Legend: Model Portfolio / Equal-weight book | Under chart | Toggles that series on or off. |
+**Default (offline):** a documented lightweight equivalent — financial lexicon logits → 3-class softmax → the same \(S = P_+ - P_-\) identity. This is what `npm run pipeline` and the desk use when no model is present.
 
-If a source + tone pair is empty, **Clear filters** is the recovery path — not a dead end.
+**Hugging Face Inference API** (ProsusAI/finbert):
 
-## How this maps to HARLF
+```bash
+cp .env.example .env.local
+# set HF_TOKEN=hf_...
+```
 
-[Coriat & Benhamou, *HARLF: Hierarchical Reinforcement Learning and Lightweight LLM-Driven Sentiment Integration for Financial Portfolio Optimization*](https://arxiv.org/abs/2507.18560), arXiv:2507.18560 (IJCAI 2025 FinLLM workshop).
+Restart the dev server. `POST /api/sentiment` will call FinBERT and fall back to the lexicon on any error.
 
-| Paper | This desk |
+**Local ONNX (Xenova/finbert, a port of ProsusAI/finbert):**
+
+```bash
+npm install -D @huggingface/transformers
+npm run score:finbert
+```
+
+That writes `data/finbert-cache.json`. The dump is gitignored; the lexicon path stays the reproducible default.
+
+## What is stubbed
+
+| Piece | Status |
 | --- | --- |
-| Google News scrape, ~10 articles / name / month | Bundled wire, mapped to the same 14 names |
-| FinBERT `S_t = mean(P_pos − P_neg)` | Precomputed triples; same identity |
-| Monthly observation: Sharpe, Sortino, Calmar, MDD, vol, sentiment | Monthly metrics from a seeded tape; sentiment from the wire |
-| Base agents: PPO, SAC, DDPG, TD3 on market **or** NLP | Heuristic specialists with those labels (no SB3 training) |
-| Data meta-agent + NLP meta-agent | Convex blends of the specialists |
-| Super-agent, lookahead mix, long-only, no leverage | Mix weight `α_NLP` from |S| and realised vol; floor 1.2%, cap 20% |
-| Book: S&P 500, Nasdaq, Dow, CAC 40, FTSE 100, Euro Stoxx 50, Hang Seng, Shanghai Composite, Sensex, Nifty 50, KOSPI, gold, silver, WTI | Same 14 |
-| Reported 26% CAGR / Sharpe 1.2 on 2018–24 | **Not claimed here.** Sample path is synthetic, with a mild sentiment overlay so the NLP sleeve is not noise. |
+| Scoring headlines into `{positive, negative, neutral}` | **Real** (lexicon always; FinBERT optional) |
+| Monthly \(S_t\) from the scored corpus | **Real** |
+| Constrained weights + month-end rebalance + lag | **Real** |
+| Walk-forward equity curve + CAGR / Sharpe / MDD / Calmar | **Real**, on the shipped 2024–25 tape |
+| Sample corpus (editorial + research prints) | **Real input**, in-repo |
+| ProsusAI/finbert weights | **Stub unless enabled** (see above) |
+| SB3 PPO/SAC/DDPG/TD3 and PyTorch meta-agents | **Stub** — inspectable mixers with those labels, not trained policies |
+| Google News scrape | **Stub** — sample corpus is the driver |
+| Yahoo Finance 2003–2024 | **Stub** — seeded sample tape, not the paper’s yfinance dump |
+| HARLF 26% CAGR / Sharpe 1.2 (2018–24) | **Not claimed** |
 
-Related code and model:
+`GET /api/pipeline` returns the same report as `npm run pipeline`.
 
-- [franjgs/llm-rl-finance-trader](https://github.com/franjgs/llm-rl-finance-trader) — LLM news sentiment + RL allocation.
-- [ProsusAI/finBERT](https://github.com/ProsusAI/finBERT) — Araci (2019), financial sentiment BERT.
+## Desk
 
-## Plug in real FinBERT later
+FT/Economist wire: Libre Franklin + Source Serif 4, `#FAF7F2`, teal `#0F766E` only for the primary positive chip and positive scores. Masthead is **SENTIMENT BOOK**.
 
-1. Create `.env.local` with a Hugging Face token:
+| Control | What it does |
+| --- | --- |
+| Edition date | Month for the wire, weights, YTD, and chart window |
+| Source / name / tone chips | Filter the editorial wire. Scores are display-only |
+| Headline | News shock into the NLP sleeve |
+| Score a print | Offline lexicon (or `/api/sentiment` if you call it) |
+| Model / risk / rebalance | Switch mixer, tilt the book, step one month |
+| Equity path | Walk-forward NAV; click a month to open that edition |
 
-   ```
-   HF_TOKEN=hf_...
-   ```
+Headless: `npm run qa` with the dev server already up.
 
-2. Restart the dev server. Optional: the “Score a print” box already scores offline. `POST /api/sentiment` calls FinBERT when `HF_TOKEN` is set and otherwise returns the same lexicon.
-
-3. For a local GPU/CPU model, keep the route shape `{ scores: { positive, negative, neutral } }` and point the fetch at your inference server, or replace the bundled triples in `lib/news.ts` with a batch dump from FinBERT (the rest of the desk will not care).
-
-4. To swap the heuristic mixer for trained policies, implement `allocate()` in `lib/allocator.ts` as a wrapper around exported SB3/PyTorch weights. The UI only consumes `WeightMap`s.
-
-## Layout of the code
+## Layout
 
 ```
-app/page.tsx                  Desk shell
-app/api/sentiment/route.ts    Optional FinBERT / lexicon
-lib/news.ts                   Bundled wire + scores
-lib/market.ts                 Seeded monthly tape + metrics
-lib/allocator.ts              Three-tier heuristic
-lib/backtest.ts               Walk-forward mark-to-market
-components/desk.tsx           Masthead, wire, board, charts
+lib/news.ts            Editorial headlines (no scores)
+lib/corpus.ts          Full sample corpus + scoring
+lib/sentiment.ts       Lexicon + optional FinBERT
+lib/aggregate.ts       Monthly S_t
+lib/constraints.ts     Floor / cap / long-only / lag
+lib/allocator.ts       Three-tier HARLF-style mixer
+lib/market.ts          Seeded monthly tape (returns independent of scorer)
+lib/backtest.ts        Walk-forward mark-to-market
+lib/pipeline.ts        End-to-end report
+lib/scrape.ts          Optional live scrape hook (off)
+app/api/sentiment      Score a headline
+app/api/pipeline       JSON pipeline report
 ```
 
 ## Licence
 
-Demo code for this repository. Paper, FinBERT, and third-party marks remain with their authors.
+Code in this repository. Paper, FinBERT, and third-party marks remain with their authors. Past performance is not indicative of future results.

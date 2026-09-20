@@ -17,7 +17,7 @@ const sourceSerif = Source_Serif_4({
 export const metadata: Metadata = {
   title: "Sentiment Book",
   description:
-    "News wire, FinBERT-style sentiment, and hierarchical portfolio construction on a 14-asset HARLF book.",
+    "HARLF/FinBERT research desk: sample news corpus scored into sentiment features, constrained 14-asset book, walk-forward backtest.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

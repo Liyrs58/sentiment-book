@@ -1,13 +1,18 @@
-import { NEWS } from "./news";
+import { getScoredCorpus } from "./corpus";
 import { signedScore } from "./sentiment";
 import type { FinbertScores } from "./types";
 
+/**
+ * HARLF monthly sentiment feature:
+ *   S_t = mean_i (P_pos,i − P_neg,i)
+ * over that month's scored corpus for each asset (paper Alg. 1).
+ */
 export function monthSentiment(
   month: string,
   extra?: { ticker: string; scores: FinbertScores; weight?: number }
 ): { sentiment: Record<string, number>; articleCount: Record<string, number> } {
   const buckets: Record<string, number[]> = {};
-  for (const article of NEWS) {
+  for (const article of getScoredCorpus()) {
     if (article.month !== month) continue;
     (buckets[article.ticker] ??= []).push(signedScore(article.scores));
   }
@@ -31,6 +36,6 @@ export function allMonthSentiments(): Record<
   string,
   { sentiment: Record<string, number>; articleCount: Record<string, number> }
 > {
-  const months = Array.from(new Set(NEWS.map((n) => n.month)));
+  const months = Array.from(new Set(getScoredCorpus().map((n) => n.month)));
   return Object.fromEntries(months.map((m) => [m, monthSentiment(m)]));
 }
