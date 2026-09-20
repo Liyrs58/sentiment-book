@@ -33,8 +33,8 @@ async function main() {
   record("No fake clock", !(await page.getByText("09:24 ET").count()), "edition stamp only");
   record(
     "Chart disclaimer",
-    (await page.getByText("Illustrative seeded path — not a live backtest / not HARLF reported returns.").count()) > 0,
-    "seeded-path line"
+    (await page.getByText("Walk-forward on the shipped sample tape").count()) > 0,
+    "walk-forward disclaimer"
   );
   record(
     "Wire microcopy",
