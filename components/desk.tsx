@@ -222,14 +222,14 @@ export function Desk() {
                 </button>
               </p>
               <p className="mt-2 text-[11px] leading-4 text-[#9A9186]">
-                Illustrative seeded path — not a live backtest / not HARLF reported returns.
+                Walk-forward on the shipped sample tape (weights_t → returns_t+1). Not HARLF 2018–24 reported returns.
               </p>
             </div>
           </section>
         </div>
 
         <footer className="mt-8 flex flex-wrap items-end justify-between gap-3 border-t border-[#111827] pt-3 text-[11px] tracking-[0.08em] text-[#9A9186] uppercase">
-          <p>Data sources: Sample wire · FinBERT-paper · Seeded HARLF tape</p>
+          <p>Sample corpus · scorer → weights → walk-forward · seeded tape</p>
           <p className="normal-case tracking-normal">
             All times ET · Past performance is not indicative of future results.
           </p>
