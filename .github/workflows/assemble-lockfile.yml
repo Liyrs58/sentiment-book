@@ -1,0 +1,34 @@
+name: assemble-lockfile
+on:
+  push:
+    paths:
+      - ".lock-parts/**"
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Concatenate lockfile parts
+        run: |
+          set -euo pipefail
+          cat .lock-parts/p1 .lock-parts/p2 .lock-parts/p3 > package-lock.json
+          python3 - << 'PY'
+          import json, hashlib, pathlib
+          p = pathlib.Path("package-lock.json")
+          data = p.read_bytes()
+          json.loads(data)
+          print("bytes", len(data))
+          print("sha256", hashlib.sha256(data).hexdigest())
+          assert len(data) == 205822
+          assert b"shadcn" not in data
+          PY
+      - name: Commit assembled lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf .lock-parts
+          git add -A package-lock.json .lock-parts
+          git commit -m "Refresh lockfile after removing unused shadcn packages"
+          git push
