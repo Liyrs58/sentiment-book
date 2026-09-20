@@ -1,5 +1,5 @@
 export function pct(n: number, digits = 1): string {
-  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
+  const sign = n > 0 ? "+" : n < 0 ? "\u2212" : "";
   return `${sign}${Math.abs(n * 100).toFixed(digits)}%`;
 }
 
@@ -37,7 +37,7 @@ export function editionDate(month: string): string {
 
 /** Honest edition stamp — never a fake clock. */
 export function editionCloseStamp(month: string): string {
-  return `As of edition close · ${editionDate(month)}`;
+  return `As of edition close \u00b7 ${editionDate(month)}`;
 }
 
 export function shortDate(iso: string): string {
@@ -61,6 +61,31 @@ export function chartTick(month: string): string {
 
 export function signedChip(n: number): string {
   if (n > 0) return `+${n.toFixed(2)}`;
-  if (n < 0) return `−${Math.abs(n).toFixed(2)}`;
+  if (n < 0) return `\u2212${Math.abs(n).toFixed(2)}`;
   return n.toFixed(2);
+}
+
+/** Weight delta in basis points. 0.01 of the book = 100 bp. */
+export function formatBp(delta: number): string {
+  const bp = Math.round(delta * 10000);
+  if (bp > 0) return `+${bp} bp`;
+  if (bp < 0) return `\u2212${Math.abs(bp)} bp`;
+  return "0 bp";
+}
+
+/** Two-line dek: cut on a word boundary, never mid-token. */
+export function clampWords(text: string, maxChars = 148): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= maxChars) return clean;
+  const slice = clean.slice(0, maxChars);
+  const cut = slice.lastIndexOf(" ");
+  const kept = (cut > 48 ? slice.slice(0, cut) : slice).replace(/[.,;:]+$/, "");
+  return `${kept}\u2026`;
+}
+
+/** Negative scores are always brick; teal is reserved for clear positives. */
+export function scoreClass(signed: number): string {
+  if (signed < 0) return "text-[#9A3412]";
+  if (signed >= 0.18) return "text-[#0F766E]";
+  return "text-[#6B7280]";
 }

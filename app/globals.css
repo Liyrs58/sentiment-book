@@ -40,13 +40,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: 0.1rem;
-  --radius-md: 0.15rem;
-  --radius-lg: 0.2rem;
-  --radius-xl: 0.25rem;
-  --radius-2xl: 0.3rem;
-  --radius-3xl: 0.35rem;
-  --radius-4xl: 0.4rem;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 }
 
 :root {
@@ -73,7 +73,7 @@
   --chart-3: #6b7280;
   --chart-4: #4f8d86;
   --chart-5: #9a3412;
-  --radius: 0.15rem;
+  --radius: 0;
   --sidebar: #f6f1ea;
   --sidebar-foreground: #111827;
   --sidebar-primary: #0f766e;
@@ -135,4 +135,15 @@
   background: #faf7f2 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+}
+
+.dek-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }

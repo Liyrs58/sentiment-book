@@ -37,7 +37,7 @@ sample corpus (headlines, no stored scores)
    scorer  ── lexicon softmax (always) or FinBERT (optional)
         │
         ▼
- monthly S_t per asset + Yahoo-style metrics on the shipped tape
+    monthly S_t per asset + Yahoo-style metrics on the shipped tape
         │
         ▼
  constrained allocator (long-only, leverage 1, floor 1.2%, cap 20%, Σw = 1)
@@ -97,9 +97,9 @@ FT/Economist wire: Libre Franklin + Source Serif 4, `#FAF7F2`, teal `#0F766E` on
 | --- | --- |
 | Edition date | Month for the wire, weights, YTD, and chart window |
 | Source / name / tone chips | Filter the editorial wire. Scores are display-only |
-| Headline | News shock into the NLP sleeve |
+| Headline | News shock: names the ticker/sleeve and the move in bp |
 | Score a print | Offline lexicon (or `/api/sentiment` if you call it) |
-| Model / risk / rebalance | Switch mixer, tilt the book, step one month |
+| Model / risk / rebalance | Base Case / Sentiment / Market / Equal; tilt; step one month |
 | Equity path | Walk-forward NAV; click a month to open that edition |
 
 Headless: `npm run qa` with the dev server already up.
