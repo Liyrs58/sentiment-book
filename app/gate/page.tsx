@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { GateForm } from "@/components/gate-form";
 import { isAuthRequired } from "@/lib/flags";
 
+export const dynamic = "force-dynamic";
+
 export default function GatePage() {
   if (!isAuthRequired()) redirect("/");
 
