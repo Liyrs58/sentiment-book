@@ -11,8 +11,10 @@
     "pipeline": "tsx scripts/run-pipeline.mts",
     "check:free-tier": "tsx scripts/check-free-tier.mts",
     "score:finbert": "tsx scripts/score-finbert.mjs",
-    "ensure:pitch": "node scripts/ensure-investor-pitch.cjs",
-    "prebuild": "node scripts/ensure-investor-pitch.cjs"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "experiment:genuine": "tsx scripts/run-genuine-experiment.mts",
+    "compare:finbert-lexicon": "tsx scripts/compare-finbert-lexicon.mts"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
@@ -31,6 +33,7 @@
     "playwright-core": "^1.63.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

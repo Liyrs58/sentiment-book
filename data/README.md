@@ -1,6 +1,7 @@
-Sample-corpus dumps belong here.
+# Data
 
-- `pipeline-cache.json` is the committed HARLF corpus snapshot (weights, sample
-  scores, session). The desk uses it when `@vercel/blob` is unset so serverless
-  `/tmp` is not the only store. `npm run pipeline` rewrites it.
-- `finbert-cache.json` is produced by `npm run score:finbert` and is gitignored.
+- `pipeline-cache.json` — committed pipeline snapshot (weights/scores metadata).
+- `finbert-cache.json` — optional ProsusAI/finBERT dump (gitignored).
+- `real/` — **REAL HISTORICAL DATA** fixtures:
+  - `yahoo-monthly-2024-2025.json` — Yahoo chart API monthly closes.
+  - `events-gdelt-sec.json` — GDELT/SEC/curated public events (not FT/Reuters/WSJ/Bloomberg).
