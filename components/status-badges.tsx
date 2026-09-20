@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export function StatusBadges({ month }: { month: string }) {
   const [backendBadge, setBackendBadge] = useState("lexicon");
   const [llmBadge, setLlmBadge] = useState("MOCK");
+  const [paperBadge, setPaperBadge] = useState("PAPER=off");
   const [pmNote, setPmNote] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,6 +16,9 @@ export function StatusBadges({ month }: { month: string }) {
         if (cancelled) return;
         if (typeof j?.backend === "string") setBackendBadge(j.backend);
         if (typeof j?.llm?.badge === "string") setLlmBadge(j.llm.badge);
+        if (typeof j?.paper?.broker === "string") {
+          setPaperBadge(`PAPER=${j.paper.broker}`);
+        }
       })
       .catch(() => {});
     return () => {
@@ -45,6 +49,9 @@ export function StatusBadges({ month }: { month: string }) {
         </span>
         <span data-qa="badge-live" className="rounded border border-[#D6D0C6] px-1.5 py-0.5">
           LIVE_TRADING=false
+        </span>
+        <span data-qa="badge-paper" className="rounded border border-[#D6D0C6] px-1.5 py-0.5">
+          {paperBadge}
         </span>
       </p>
       <div className="flex flex-wrap items-center gap-3">

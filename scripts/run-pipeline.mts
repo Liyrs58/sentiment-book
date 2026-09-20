@@ -2,11 +2,14 @@
  * Offline pipeline: score sample corpus → weights → backtest curve.
  *   npm run pipeline
  */
+import { persistPipelineCache } from "../lib/pipeline-cache";
 import { runResearchPipeline } from "../lib/pipeline";
 
 const report = runResearchPipeline("2025-05");
+const store = await persistPipelineCache(report, { month: report.month });
 
 console.log("Sentiment Book · research pipeline");
+console.log(`store        ${store.backend} durable=${store.durable}`);
 console.log(`backend     ${report.backend}`);
 console.log(`note         ${report.backendNote}`);
 console.log(`articles     ${report.articlesScored}`);
