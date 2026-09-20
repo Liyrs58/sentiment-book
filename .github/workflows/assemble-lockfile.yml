@@ -2,9 +2,6 @@ name: Assemble package-lock
 on:
   push:
     branches: [main]
-    paths:
-      - '.ci/lock-parts/**'
-      - '.github/workflows/assemble-lockfile.yml'
   workflow_dispatch:
 jobs:
   assemble:
@@ -13,27 +10,31 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Assemble package-lock.json from parts
+      - name: Download complete package-lock.json
         run: |
           set -euo pipefail
-          if [ ! -f .ci/lock-parts/part-01.b64 ] || [ ! -f .ci/lock-parts/part-02.b64 ] || [ ! -f .ci/lock-parts/part-03.b64 ]; then
-            echo "Not all parts present yet; skipping"
-            exit 0
-          fi
-          cat .ci/lock-parts/part-01.b64 .ci/lock-parts/part-02.b64 .ci/lock-parts/part-03.b64 | tr -d '\n' | base64 -d | gzip -d > package-lock.json
+          curl -fsSL "https://dpaste.com/A42F9X2CH.txt" -o package-lock.json
           python3 - <<'PY'
-          import json, os
-          size = os.path.getsize('package-lock.json')
-          print('assembled size', size)
-          assert size > 200000, size
-          data = json.load(open('package-lock.json'))
-          assert data.get('name') == 'sentiment-book'
-          assert data.get('lockfileVersion') == 3
+          import json, hashlib, os
+          data = open('package-lock.json', 'rb').read()
+          print('size', len(data))
+          assert len(data) > 200000, len(data)
+          digest = hashlib.sha256(data).hexdigest()
+          print('sha256', digest)
+          assert digest == 'ab459fa02a2a1a6eb9d2b1f36700a2243ac40b09080d3cd31cb4845fb0d79ce5'
+          parsed = json.loads(data)
+          assert parsed.get('name') == 'sentiment-book'
+          assert parsed.get('lockfileVersion') == 3
           PY
+      - name: Commit lockfile
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package-lock.json
-          git rm -r --ignore-unmatch .ci/lock-parts
-          git add -A .ci || true
+          if git diff --cached --quiet; then
+            echo "package-lock.json already complete"
+            exit 0
+          fi
           git commit -m "Add complete npm package-lock.json"
           git push
