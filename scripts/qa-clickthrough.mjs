@@ -30,8 +30,20 @@ async function main() {
   await page.goto(URL, { waitUntil: "networkidle" });
   const title = await page.locator("h1").innerText();
   record("Load Sentiment Book", /sentiment[\s\u00a0]*book/i.test(title), title);
-  record("No fake clock", !(await page.getByText("09:24 ET").count()), "edition stamp only");
+  record("No fake clock", !(await page.getByText("09:24 ET").count()) && !(await page.getByText("As of 09:24").count()) && !(await page.getByText(/^As of /).count()), "edition stamp only");
   record("No arrows", !(await page.getByText("↗").count()) && !(await page.getByText("↘").count()), "signed +/− only");
+  const bodyText = await page.locator("body").innerText();
+  const markLoc = page.locator("section p").filter({ hasText: /Base-case mixer|Equal book|Sentiment book|Market book/ });
+  const mark = (await markLoc.count()) ? await markLoc.first().innerText() : "";
+  record(
+    "Engineer voice off mark line",
+    !/offline-lexicon|FinBERT-paper|Seeded HARLF|NLP mix/i.test(mark) &&
+      /Offline lexicon/.test(bodyText) &&
+      /Walk-forward on the shipped sample tape/.test(bodyText),
+    mark.slice(0, 80) || "no mark yet"
+  );
+  const scoreFont = await page.locator("[data-score]").first().evaluate((el) => getComputedStyle(el).fontFamily);
+  record("Score mono", /plex|mono/i.test(scoreFont), scoreFont);
   const modelLabels = await page.getByLabel("Allocation model").locator("option").allInnerTexts();
   record(
     "Plain model names",
@@ -48,7 +60,7 @@ async function main() {
   );
   record(
     "Wire microcopy",
-    (await page.getByText("Chip filters tone · Headline applies shock.").count()) > 0,
+    (await page.getByText("Tone filters the wire · Headline applies shock.").count()) > 0,
     "microcopy"
   );
   record(
@@ -58,6 +70,23 @@ async function main() {
   );
 
   const edition = page.getByLabel("Edition date");
+  const editionYears = await edition.locator("option").evaluateAll((els) =>
+    els.map((el) => ({
+      value: el.getAttribute("value") || "",
+      text: (el.textContent || "").replace(/\s+/g, " ").trim(),
+    }))
+  );
+  const yearsMatch = editionYears.every(
+    (row) => row.value && row.text.includes(row.value.slice(0, 4))
+  );
+  const defaultYear = await edition.inputValue();
+  record(
+    "Edition years",
+    yearsMatch && defaultYear === "2025-05" && /2025/.test(
+      editionYears.find((r) => r.value === "2025-05")?.text || ""
+    ),
+    `default ${defaultYear}; ${editionYears.length} options`
+  );
   const firstHeadline = page.locator("aside h3").first();
   const beforeHead = await firstHeadline.innerText();
   const beforeEq = await text(page, "button[aria-label='Filter wire to Equities']");
@@ -167,7 +196,7 @@ async function main() {
   await page.getByLabel("Live score ticker").selectOption("GC");
   await page.getByRole("button", { name: "Apply shock" }).click();
   await page.waitForTimeout(200);
-  const liveNote = await page.getByText(/offline-lexicon|Shock on GC/i).count();
+  const liveNote = await page.getByText(/Shock on Gold|S \+|S −/i).count();
   record("Score a print (offline lexicon)", liveNote > 0, "lexicon shock applied");
   if (await page.getByRole("button", { name: "Clear shock" }).count()) {
     await page.getByRole("button", { name: "Clear shock" }).click();
