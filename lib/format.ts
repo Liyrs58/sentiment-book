@@ -35,9 +35,9 @@ export function editionDate(month: string): string {
   });
 }
 
-/** Honest edition stamp — never a fake clock. */
+/** Edition stamp — bound to the selected month, never a frozen clock. */
 export function editionCloseStamp(month: string): string {
-  return `As of edition close · ${editionDate(month)}`;
+  return `Edition close · ${editionDate(month)}`;
 }
 
 export function shortDate(iso: string): string {
