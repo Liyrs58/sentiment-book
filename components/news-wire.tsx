@@ -95,7 +95,7 @@ export function NewsWire({
       scores,
       headline: text,
     });
-    setLiveNote(`offline-lexicon: ${signedChip(signedScore(scores))}`);
+    setLiveNote(`S ${signedChip(signedScore(scores))}`);
   }
 
   return (
@@ -123,13 +123,13 @@ export function NewsWire({
       </div>
 
       <p className="mt-2 text-[11px] leading-4 text-[#6B7280]">
-        Chip filters tone · Headline applies shock.
+        Tone filters the wire · Headline applies shock.
       </p>
       <p className="mt-1 text-[11px] leading-4 text-[#9A9186]">
         Score = mean(P₊−P₋), [−1,+1]
       </p>
 
-      <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
+      <div className="mt-2 flex flex-wrap items-center text-[11px] tracking-wide uppercase">
         <SourceChip
           label="All"
           pressed={source === "ALL"}
@@ -137,14 +137,21 @@ export function NewsWire({
           onClick={() => setSource("ALL")}
         />
         {MASTHEAD_SOURCES.map((s) => (
-          <SourceChip
-            key={s}
-            label={s}
-            pressed={source === s}
-            ariaLabel={`Filter source ${s}`}
-            onClick={() => setSource(s)}
-          />
+          <span key={s} className="flex items-center">
+            <span className="mx-2 text-[#C9C2B6]" aria-hidden>
+              |
+            </span>
+            <SourceChip
+              label={s}
+              pressed={source === s}
+              ariaLabel={`Filter source ${s}`}
+              onClick={() => setSource(s)}
+            />
+          </span>
         ))}
+        <span className="mx-2 text-[#C9C2B6]" aria-hidden>
+          |
+        </span>
         <label className="flex items-baseline gap-1 text-[11px] text-[#6B7280]">
           <span className={moreSelected ? "border-b border-[#111827] text-[#111827]" : ""}>
             More
@@ -165,7 +172,7 @@ export function NewsWire({
         </label>
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {TONES.map((item) => {
           const on = tone === item.id;
           return (
@@ -175,14 +182,14 @@ export function NewsWire({
               aria-pressed={on}
               aria-label={`Filter ${item.label} sentiment`}
               onClick={() => setTone(item.id)}
-              className={`border-b pb-px text-[11px] tracking-wide uppercase ${
+              className={`border px-1.5 py-px text-[10px] tracking-[0.12em] uppercase ${
                 on && item.id === "pos"
                   ? "border-[#0F766E] text-[#0F766E]"
                   : on && item.id === "neg"
                     ? "border-[#9A3412] text-[#9A3412]"
                     : on
                       ? "border-[#111827] text-[#111827]"
-                      : "border-transparent text-[#6B7280]"
+                      : "border-[#C9C2B6] text-[#6B7280]"
               }`}
             >
               {item.label}
@@ -234,7 +241,7 @@ export function NewsWire({
           {rows.length} stories
           <span className="mx-2 text-[#C9C2B6]">|</span>
           Sentiment aggregate:{" "}
-          <span className={`tabular ${scoreClass(aggregate)}`}>
+          <span className={`score ${scoreClass(aggregate)}`}>
             {signedChip(aggregate)}
           </span>
         </p>
@@ -245,9 +252,6 @@ export function NewsWire({
         >
           {compose ? "Hide live score" : "Score a print"}
         </button>
-        <p className="mt-1 text-[11px] leading-4 text-[#9A9186]">
-          Offline lexicon — not live FinBERT
-        </p>
         {compose ? (
           <form
             className="mt-2"
@@ -345,10 +349,10 @@ function WireItem({
           </h3>
         </button>
         <div className="mt-0.5 flex shrink-0 items-center gap-2">
-          <span data-score className={`tabular text-[11px] leading-5 ${scoreClass(signed)}`}>
+          <span data-score className={`score text-[11px] leading-5 ${scoreClass(signed)}`}>
             {signedChip(signed)}
           </span>
-          <span className="tabular text-[11px] text-[#9CA3AF]">
+          <span className="score text-[11px] text-[#9CA3AF]">
             {shortDate(article.date)}
           </span>
         </div>
