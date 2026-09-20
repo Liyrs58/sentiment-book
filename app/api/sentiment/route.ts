@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { unauthorizedIfGated } from "@/lib/auth";
 import { hydrateFinbertCache } from "@/lib/finbert-cache";
 import { scoreHeadline } from "@/lib/sentiment";
 
 export async function POST(request: Request) {
+  const gated = unauthorizedIfGated(request);
+  if (gated) return gated;
   const body = (await request.json()) as { text?: string };
   const text = (body.text ?? "").trim();
   if (text.length < 8) {

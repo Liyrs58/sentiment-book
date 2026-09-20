@@ -26,7 +26,7 @@ npm run pipeline    # scores → weights → backtest (no server)
 npm run dev         # desk on http://127.0.0.1:43173
 ```
 
-No API keys required for the research pipeline (lexicon scoring). Optional `NVIDIA_API_KEY` unlocks PM prose notes only. `LIVE_TRADING` is always false.
+No API keys required for the research pipeline (lexicon scoring). Optional `NVIDIA_API_KEY` unlocks PM prose notes only. Optional `@vercel/blob` persists the pipeline cache beyond `/tmp`. Optional `DEMO_ACCESS_CODE` gates the desk. Optional `PAPER_BROKER=alpaca` is a paper sleeve, not the research path. `LIVE_TRADING` is always false.
 
 ## Pipeline (what is real)
 
@@ -84,9 +84,40 @@ Hosted NIM is OpenAI-compatible at `https://integrate.api.nvidia.com/v1` ([LLM A
 | Model | Locked to `google/gemma-4-31b-it` (env overrides ignored). |
 | Base URL | Locked to `https://integrate.api.nvidia.com/v1`. |
 | `LLM_PROVIDER=mock` | Force mock even if a key is set. |
-| `LIVE_TRADING` | Always **false** — no broker. |
+| `LIVE_TRADING` | Always **false** — no live broker. Optional paper sleeve is separate. |
 
 NIM calls use `stream: true` and a **180s** timeout. Cold start can take ~2 minutes; non-stream requests may hang. `/api/pm-note` and `/api/pipeline?pm=1` set `maxDuration = 180`. Failures fall back to mock prose; badge **FALLBACK MOCK**.
+
+## Durable cache and optional gate
+
+Serverless `/tmp` is ephemeral. The pipeline cache (weights, sample scores, session month) is written in this order:
+
+1. **@vercel/blob** when `BLOB_READ_WRITE_TOKEN` is set (`sentiment-book/pipeline-cache.json`, private).
+2. **Committed** `data/pipeline-cache.json` (rewritten by `npm run pipeline`; shipped with the repo so the corpus snapshot survives without Blob).
+3. **`/tmp`** only if both of the above are unavailable (`store.durable=false`).
+
+`GET /api/health` reports `store.durable` and `store.backend` (`blob` | `committed` | `tmp`).
+
+Optional cookie gate — **unset `DEMO_ACCESS_CODE` means the desk is public**:
+
+| Env | Role |
+| --- | --- |
+| `DEMO_ACCESS_CODE` | Shared access code. Unset → no gate. |
+| `AUTH_SECRET` | HMAC key for the `sb_gate` httpOnly cookie. Falls back to the access code if unset. |
+
+When the code is set, `/gate` collects it and APIs return 401 until the cookie is present. Health stays public so it can report `auth.required`.
+
+## Optional Alpaca paper sleeve
+
+Not required for HARLF research. Scoring stays lexicon / FinBERT. Default **off**.
+
+| Env | Role |
+| --- | --- |
+| `PAPER_BROKER` | `off` (default) or `alpaca`. |
+| `ALPACA_API_KEY` / `ALPACA_API_SECRET` | Paper keys from the Alpaca dashboard. |
+| Base URL | Locked to `https://paper-api.alpaca.markets`. Live `api.alpaca.markets` is never used. |
+
+The sleeve mirrors the latest **constrained** book as notional ETF positions (SPY, QQQ, GLD, …). The desk only **reads** the paper account or **submits** when you click; nothing auto-trades. Submit is a two-click confirm. `LIVE_TRADING` remains false.
 
 ```bash
 cp .env.example .env.local
@@ -110,6 +141,9 @@ Desk masthead shows `backend` (lexicon / finbert-local / finbert-hf) and LLM bad
 | Yahoo Finance 2003–2024 | **Stub** — seeded sample tape, not the paper’s yfinance dump |
 | HARLF 26% CAGR / Sharpe 1.2 (2018–24) | **Not claimed** |
 | PM notes | **Mock without key**; optional NIM `google/gemma-4-31b-it` |
+| Pipeline cache | **Committed** `data/pipeline-cache.json`; **Blob** if token set |
+| Desk gate | **Off** unless `DEMO_ACCESS_CODE` is set |
+| Alpaca paper sleeve | **Off** unless `PAPER_BROKER=alpaca` |
 
 `GET /api/pipeline` returns the same report as `npm run pipeline`.
 
@@ -126,6 +160,7 @@ FT/Economist wire: Libre Franklin + Source Serif 4, `#FAF7F2`, teal `#0F766E` on
 | Model / Next edition | Base Case / Sentiment / Market / Equal; step one month |
 | Equity path | Walk-forward NAV; click a month to open that edition |
 | PM note | Optional mock or NVIDIA NIM prose (scoring unchanged) |
+| Paper sleeve | Hidden unless `PAPER_BROKER=alpaca`; read account / submit on click |
 
 Headless: `npm run qa` with the dev server already up.
 
@@ -142,12 +177,18 @@ lib/market.ts          Seeded monthly tape (returns independent of scorer)
 lib/backtest.ts        Walk-forward mark-to-market
 lib/pipeline.ts        End-to-end report
 lib/pm-note.ts         Optional NVIDIA NIM / mock PM prose
-lib/flags.ts           LIVE_TRADING=false + NIM lock
+lib/flags.ts           LIVE_TRADING=false + NIM lock + paper/auth flags
+lib/store.ts           Blob / committed /tmp pipeline cache
+lib/auth.ts            Optional DEMO_ACCESS_CODE cookie gate
+lib/alpaca.ts          Optional paper sleeve (paper-api only)
 lib/scrape.ts          Optional live scrape hook (off)
 app/api/sentiment      Score a headline
 app/api/pipeline       JSON pipeline report (+ optional ?pm=1)
 app/api/pm-note        PM note (mock or NIM)
-app/api/health         Backend + LLM badges
+app/api/health         Backend + LLM + store.durable + auth.required
+app/api/auth           Optional access-code cookie
+app/api/paper          Read / submit Alpaca paper sleeve (explicit click)
+proxy.ts               Optimistic gate redirect when auth is required
 ```
 
 ## Licence

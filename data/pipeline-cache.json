@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "kind": "pipeline-cache",
+  "savedAt": "2026-09-20T14:25:21.782Z",
+  "backend": "lexicon",
+  "backendNote": "Lexicon softmax (documented FinBERT equivalent). Set HF_TOKEN or run npm run score:finbert for ProsusAI/finbert.",
+  "articlesScored": 729,
+  "month": "2025-05",
+  "weights": [
+    {
+      "id": "GSPC",
+      "name": "S&P 500",
+      "weight": 0.04490810626948544
+    },
+    {
+      "id": "IXIC",
+      "name": "Nasdaq",
+      "weight": 0.11323504325925828
+    },
+    {
+      "id": "DJI",
+      "name": "Dow",
+      "weight": 0.04609455002346319
+    },
+    {
+      "id": "FCHI",
+      "name": "CAC 40",
+      "weight": 0.05974965280919961
+    },
+    {
+      "id": "FTSE",
+      "name": "FTSE 100",
+      "weight": 0.1145031125191241
+    },
+    {
+      "id": "SX5E",
+      "name": "Euro Stoxx 50",
+      "weight": 0.06036274986790594
+    },
+    {
+      "id": "HSI",
+      "name": "Hang Seng",
+      "weight": 0.04478767365736417
+    },
+    {
+      "id": "SSEC",
+      "name": "Shanghai Composite",
+      "weight": 0.05871539452848851
+    },
+    {
+      "id": "BSESN",
+      "name": "Sensex",
+      "weight": 0.09582224441293302
+    },
+    {
+      "id": "NSEI",
+      "name": "Nifty 50",
+      "weight": 0.06576453550989993
+    },
+    {
+      "id": "KS11",
+      "name": "KOSPI",
+      "weight": 0.04441308032450585
+    },
+    {
+      "id": "GC",
+      "name": "Gold",
+      "weight": 0.08745794300339951
+    },
+    {
+      "id": "SI",
+      "name": "Silver",
+      "weight": 0.11434923614283643
+    },
+    {
+      "id": "CL",
+      "name": "WTI crude",
+      "weight": 0.04983667767213609
+    }
+  ],
+  "sampleScores": [
+    {
+      "id": "2024-01-gspc-soft",
+      "headline": "U.S. inflation cools; traders lean into a June cut",
+      "scores": {
+        "positive": 0.8091,
+        "negative": 0.0572,
+        "neutral": 0.1337
+      },
+      "signed": 0.7519
+    },
+    {
+      "id": "2024-01-gc-bid",
+      "headline": "Gold firms as real rates slip and ETF outflows stall",
+      "scores": {
+        "positive": 0.3889,
+        "negative": 0.1361,
+        "neutral": 0.475
+      },
+      "signed": 0.2528
+    },
+    {
+      "id": "2024-01-hsi-property",
+      "headline": "Hong Kong developers wobble as home prices print a fresh low",
+      "scores": {
+        "positive": 0.1761,
+        "negative": 0.412,
+        "neutral": 0.412
+      },
+      "signed": -0.23589999999999997
+    },
+    {
+      "id": "2024-02-ixic-nvidia",
+      "headline": "Nvidia results reset the AI capex clock; Nasdaq extends melt-up",
+      "scores": {
+        "positive": 0.6779,
+        "negative": 0.0964,
+        "neutral": 0.2257
+      },
+      "signed": 0.5814999999999999
+    },
+    {
+      "id": "2024-02-ks11-hbm",
+      "headline": "Korean chipmakers lift KOSPI on HBM allocation talk",
+      "scores": {
+        "positive": 0.536,
+        "negative": 0.1389,
+        "neutral": 0.3251
+      },
+      "signed": 0.3971
+    },
+    {
+      "id": "2024-02-ssec-slow",
+      "headline": "Shanghai Composite sags as private-sector PMI stays below 50",
+      "scores": {
+        "positive": 0.2497,
+        "negative": 0.5558,
+        "neutral": 0.1945
+      },
+      "signed": -0.3060999999999999
+    }
+  ],
+  "backtest": {
+    "rule": "weights_t (from month-end t) → returns_{t+1}; long-only, leverage 1, cap 0.2",
+    "months": 24,
+    "harlf": {
+      "cagr": 0.05496522005734894,
+      "sharpe": 0.47395187478769035,
+      "maxDrawdown": -0.07814794429786398,
+      "calmar": 0.7033482524869347
+    },
+    "equal": {
+      "cagr": 0.07139026013171978,
+      "sharpe": 0.5732821945152003,
+      "maxDrawdown": -0.0873605689010466,
+      "calmar": 0.8171908794754256
+    },
+    "spx": {
+      "cagr": 0.10066183817270558,
+      "sharpe": 0.4577614641583835,
+      "maxDrawdown": -0.24809837885190822,
+      "calmar": 0.40573355875409156
+    }
+  },
+  "session": {
+    "month": "2025-05",
+    "updatedAt": "2026-09-20T14:25:21.462Z"
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { StatusBadges } from "@/components/status-badges";
+import { PaperSleeve } from "@/components/paper-sleeve";
 import { NewsWire } from "@/components/news-wire";
 import { AllocationList } from "@/components/portfolio-board";
 import { EquityPath, windowCurve, ytdReturn } from "@/components/charts";
@@ -164,6 +165,8 @@ export function Desk() {
 
             {note ? <p className="mt-3 text-[12px] leading-4 text-[#6B7280]">{note}</p> : null}
 
+            <PaperSleeve month={month} />
+
             <div className="mt-8 border-t border-[#D6D0C6] pt-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="text-[11px] font-semibold tracking-[0.14em] text-[#111827] uppercase">
@@ -202,7 +205,8 @@ export function Desk() {
         <footer className="mt-8 border-t border-[#111827] pt-3 text-[11px] leading-4 text-[#9A9186]">
           <p>
             Editorial sample. Scoring: lexicon or optional FinBERT dump. Optional PM notes via NVIDIA NIM
-            (mock without key). Walk-forward on the shipped sample tape. LIVE_TRADING=false.
+            (mock without key). Walk-forward on the shipped sample tape. Optional Alpaca paper sleeve is
+            off by default. LIVE_TRADING=false.
           </p>
           <p className="mt-1">Past performance is not indicative of future results.</p>
         </footer>

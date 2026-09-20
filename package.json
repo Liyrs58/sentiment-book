@@ -9,9 +9,11 @@
     "lint": "eslint",
     "qa": "node scripts/qa-clickthrough.mjs",
     "pipeline": "tsx scripts/run-pipeline.mts",
+    "check:free-tier": "tsx scripts/check-free-tier.mts",
     "score:finbert": "tsx scripts/score-finbert.mjs"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",

@@ -66,6 +66,7 @@ export function runResearchPipeline(month = "2025-05"): PipelineReport {
       `Constrained allocation: long-only, leverage 1, floor ${CONSTRAINTS.minWeight}, cap ${CONSTRAINTS.maxWeight}, sum to 1.`,
       "Walk-forward backtest: weights from month t applied to month t+1 returns on the shipped tape.",
       "Desk wire, filters, shocks, and equity path consume the same pipeline.",
+      "Pipeline cache persists to @vercel/blob when BLOB_READ_WRITE_TOKEN is set, else committed data/pipeline-cache.json, else /tmp.",
     ],
     stubbed: [
       "ProsusAI/finbert weights — optional; lexicon softmax is the offline equivalent.",
@@ -73,6 +74,7 @@ export function runResearchPipeline(month = "2025-05"): PipelineReport {
       "Google News live scrape — optional; sample corpus is the default.",
       "Yahoo Finance 2003–2024 tape — seeded 2024–25 sample returns, not the paper's yfinance dump.",
       "HARLF reported 26% CAGR / Sharpe 1.2 on 2018–24 — not claimed here.",
+      "Alpaca paper sleeve — optional, PAPER_BROKER=off by default; not required for HARLF research.",
     ],
   };
 }
