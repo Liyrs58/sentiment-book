@@ -1,0 +1,154 @@
+"use client";
+
+import {
+  CartesianGrid,
+  Label,
+  Line,
+  LineChart,
+  ReferenceDot,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { INK, RULE } from "@/lib/colors";
+import { monthLabel } from "@/lib/format";
+import type { EquityPoint } from "@/lib/types";
+
+type TipProps = {
+  active?: boolean;
+  payload?: { name: string; value: number; color: string }[];
+  label?: string;
+};
+
+function Tip({ active, payload, label }: TipProps) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="border border-[#C9C2B6] bg-[#FAF7F2] px-2 py-1.5 text-xs">
+      <p className="mb-1 text-[#6B7280]">{label}</p>
+      {payload.map((p) => (
+        <p key={p.name} className="tabular" style={{ color: p.color }}>
+          {p.name} {p.value.toFixed(2)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+export function windowCurve(curve: EquityPoint[], month: string) {
+  const cut = curve
+    .filter((p) => p.month !== "start" && p.month <= month)
+    .slice(-6);
+  if (cut.length === 0) return [];
+  const base = cut[0];
+  return cut.map((p) => ({
+    month: p.month,
+    label: monthLabel(p.month),
+    model: (p.harlf / base.harlf) * 100,
+    bench: (p.equal / base.equal) * 100,
+  }));
+}
+
+export function EquityPath({
+  data,
+  showModel,
+  showBench,
+  onSelectMonth,
+}: {
+  data: { month: string; label: string; model: number; bench: number }[];
+  showModel: boolean;
+  showBench: boolean;
+  onSelectMonth: (month: string) => void;
+}) {
+  if (data.length === 0 || (!showModel && !showBench)) {
+    return (
+      <div className="flex h-48 items-center text-sm text-[#6B7280]">
+        No series selected. Use the legend to show the model or equal-weight path.
+      </div>
+    );
+  }
+  const last = data[data.length - 1];
+  const lows = data.flatMap((d) => [
+    ...(showModel ? [d.model] : []),
+    ...(showBench ? [d.bench] : []),
+  ]);
+  const min = Math.min(...lows);
+  const max = Math.max(...lows);
+  const pad = Math.max(4, (max - min) * 0.18);
+  return (
+    <div className="h-[220px] w-full cursor-pointer">
+      <ResponsiveContainer>
+        <LineChart
+          data={data}
+          margin={{ top: 12, right: 44, left: 0, bottom: 4 }}
+          onClick={(state) => {
+            const label = state?.activeLabel;
+            const point = data.find((d) => d.label === label);
+            if (point) onSelectMonth(point.month);
+          }}
+        >
+          <CartesianGrid stroke="#E4DDD2" strokeDasharray="3 4" vertical={false} />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: "#6B7280", fontSize: 11 }}
+            tickLine={false}
+            axisLine={{ stroke: RULE }}
+            interval={0}
+          />
+          <YAxis
+            tick={{ fill: "#6B7280", fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            domain={[Math.floor(min - pad), Math.ceil(max + pad)]}
+            width={32}
+          />
+          <Tooltip content={<Tip />} />
+          {showBench ? (
+            <Line
+              type="monotone"
+              dataKey="bench"
+              name="Equal-weight"
+              stroke="#9CA3AF"
+              strokeWidth={1.4}
+              strokeDasharray="5 4"
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+          ) : null}
+          {showModel ? (
+            <Line
+              type="monotone"
+              dataKey="model"
+              name="Model portfolio"
+              stroke={INK}
+              strokeWidth={1.7}
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+          ) : null}
+          {showModel ? (
+            <ReferenceDot x={last.label} y={last.model} r={3.5} fill={INK} stroke={INK}>
+              <Label
+                value={last.model.toFixed(2)}
+                position="right"
+                fill={INK}
+                fontSize={11}
+                offset={8}
+              />
+            </ReferenceDot>
+          ) : null}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function ytdReturn(curve: EquityPoint[], month: string) {
+  const year = month.slice(0, 4);
+  const now = curve.find((p) => p.month === month);
+  if (!now) return 0;
+  const priorDec = curve.find((p) => p.month === `${Number(year) - 1}-12`);
+  const jan = curve.find((p) => p.month === `${year}-01`);
+  const base = priorDec ?? jan ?? curve[0];
+  return now.harlf / base.harlf - 1;
+}
