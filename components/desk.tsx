@@ -76,7 +76,7 @@ export function Desk() {
     setMonth(next);
     setShockId(null);
     setLiveShock(null);
-        setNote(`Opened next edition · ${editionDate(next)}. Book marked; shock cleared.`);
+    setNote(`Opened next edition · ${editionDate(next)}. Book marked; shock cleared.`);
   }
 
   return (
@@ -193,7 +193,7 @@ export function Desk() {
                 <p className="text-[13px] text-[#6B7280]">
                   YTD Performance{" "}
                   <span
-                    className={`tabular ${ytd >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
+                    className={`score ${ytd >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
                   >
                     {pct(ytd, 2)}
                   </span>
@@ -225,18 +225,15 @@ export function Desk() {
                   Equal-weight book
                 </span>
               </p>
-              <p className="mt-2 text-[11px] leading-4 text-[#9A9186]">
-                Walk-forward on the shipped sample tape (weights_t → returns_t+1). Not HARLF 2018–24 reported returns.
-              </p>
             </div>
           </section>
         </div>
 
-        <footer className="mt-8 flex flex-wrap items-end justify-between gap-3 border-t border-[#111827] pt-3 text-[11px] tracking-[0.08em] text-[#9A9186] uppercase">
-          <p>Sample corpus · scorer → weights → walk-forward · seeded tape</p>
-          <p className="normal-case tracking-normal">
-            Past performance is not indicative of future results.
+        <footer className="mt-8 border-t border-[#111827] pt-3 text-[11px] leading-4 text-[#9A9186]">
+          <p>
+            Editorial sample. Offline lexicon, not live FinBERT. Walk-forward on the shipped sample tape — not HARLF 2018–24 reported returns.
           </p>
+          <p className="mt-1">Past performance is not indicative of future results.</p>
         </footer>
       </div>
     </div>
@@ -246,7 +243,6 @@ export function Desk() {
 function whyTheseWeights(
   snapshot: {
     shock?: { ticker: string; headline: string; signedDelta: number };
-    alpha: number;
     regime: string;
   },
   model: ModelKey,
@@ -296,7 +292,7 @@ function whyTheseWeights(
       : risk === "defensive"
         ? "defensive gold/commodity tilt"
         : "balanced risk";
-  return `${modelLabel} on a ${snapshot.regime.replace("-", " ")} tape; ${riskLine}. NLP mix α ${(snapshot.alpha * 100).toFixed(0)}%.`;
+  return `${modelLabel} on a ${snapshot.regime.replace("-", " ")} book; ${riskLine}.`;
 }
 
 function pickModel(snapshot: { superWeights: WeightMap; equalWeights: WeightMap; agents: { id: string; weights: WeightMap }[] }, model: ModelKey): WeightMap {
