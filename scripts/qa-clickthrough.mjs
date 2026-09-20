@@ -29,7 +29,18 @@ async function main() {
 
   await page.goto(URL, { waitUntil: "networkidle" });
   const title = await page.locator("h1").innerText();
-  record("Load Sentiment Book", /sentiment/i.test(title), title);
+  record("Load Sentiment Book", /sentiment[\s\u00a0]*book/i.test(title), title);
+  record("No fake clock", !(await page.getByText("09:24 ET").count()), "edition stamp only");
+  record(
+    "Chart disclaimer",
+    (await page.getByText("Illustrative seeded path — not a live backtest / not HARLF reported returns.").count()) > 0,
+    "seeded-path line"
+  );
+  record(
+    "Wire microcopy",
+    (await page.getByText("Chip filters tone · Headline applies shock.").count()) > 0,
+    "microcopy"
+  );
 
   const edition = page.getByLabel("Edition date");
   const firstHeadline = page.locator("aside h3").first();
@@ -47,8 +58,8 @@ async function main() {
   await edition.selectOption("2025-05");
   await page.waitForTimeout(150);
 
-  const source = page.getByLabel("Filter by source");
-  await source.selectOption("FT");
+  const sourceFt = page.getByRole("button", { name: "Filter source FT" });
+  await sourceFt.click();
   await page.waitForTimeout(150);
   const metaLines = await page.locator("aside li p").filter({ hasText: "•" }).allInnerTexts();
   const ftOnly =
@@ -63,10 +74,18 @@ async function main() {
     await page.getByRole("button", { name: "Clear filters" }).first().click();
     await page.waitForTimeout(100);
   } else {
-    await source.selectOption("ALL");
+    await page.getByRole("button", { name: "Filter source All" }).click();
   }
 
   const names = page.getByLabel("Filter by name");
+  const nameOptions = await names.locator("option").allInnerTexts();
+  record(
+    "Editorial names in filter",
+    nameOptions.some((t) => /S&P 500/.test(t)) &&
+      nameOptions.some((t) => /Nasdaq/.test(t)) &&
+      nameOptions.some((t) => /Dow/.test(t)),
+    nameOptions.filter((t) => /S&P|Nasdaq|Dow/.test(t)).join(" | ")
+  );
   await names.selectOption("GC");
   await page.waitForTimeout(150);
   const goldHeads = await page.locator("aside h3").allInnerTexts();
@@ -92,17 +111,18 @@ async function main() {
   );
   await page.getByRole("button", { name: "Filter All sentiment" }).first().click();
 
-  const storyChip = page.locator("aside button[aria-label^='Filter']").nth(4);
-  if (await storyChip.count()) {
-    await storyChip.click();
-    await page.waitForTimeout(100);
-    const anyPressed = await page
-      .locator("button[aria-pressed='true'][aria-label^='Filter']")
-      .count();
-    record("Story sentiment chip", anyPressed > 0, `pressed filters ${anyPressed}`);
-  } else {
-    record("Story sentiment chip", false, "no story chip");
-  }
+  const score = page.locator("[data-score]").first();
+  const tonePos = page.getByRole("button", { name: "Filter Positive sentiment" }).first();
+  const pressedBefore = await tonePos.getAttribute("aria-pressed");
+  await score.click({ force: true });
+  await page.waitForTimeout(80);
+  const pressedAfter = await tonePos.getAttribute("aria-pressed");
+  const scoreTag = await score.evaluate((el) => el.tagName);
+  record(
+    "Story score is display",
+    scoreTag !== "BUTTON" && pressedBefore === pressedAfter,
+    `tag=${scoreTag} pressed ${pressedBefore}→${pressedAfter}`
+  );
   await page.getByRole("button", { name: "Clear filters" }).first().click().catch(() => {});
   await page.getByRole("button", { name: "Filter All sentiment" }).first().click();
   await page.waitForTimeout(80);
@@ -190,10 +210,20 @@ async function main() {
   record("Allocation sleeve filter", sleeveOk, `pressed=${pressed} n=${afterSleeve.length}`);
   await goldFilter.click();
 
-  const chart = page.locator(".recharts-wrapper").first();
+  await page.waitForFunction(() => {
+    const svg = document.querySelector("svg.recharts-surface");
+    if (!svg) return false;
+    return Number(svg.getAttribute("width") || 0) > 40;
+  });
+  const chart = page.locator("svg.recharts-surface").first();
   await chart.hover({ position: { x: 180, y: 80 } });
   await page.waitForTimeout(200);
-  record("Chart hover/tooltip", await chart.isVisible(), "hovered");
+  const chartBox = await chart.boundingBox();
+  record(
+    "Chart hover/tooltip",
+    Boolean(chartBox && chartBox.width > 40 && chartBox.height > 40),
+    chartBox ? `${Math.round(chartBox.width)}×${Math.round(chartBox.height)}` : "missing"
+  );
 
   const monthBeforeClick = await edition.inputValue();
   await chart.click({ position: { x: 70, y: 90 } });
