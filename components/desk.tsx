@@ -5,10 +5,10 @@ import { NewsWire } from "@/components/news-wire";
 import { AllocationList } from "@/components/portfolio-board";
 import { EquityPath, windowCurve, ytdReturn } from "@/components/charts";
 import { allocate, tiltRisk } from "@/lib/allocator";
-import { SAMPLE_MONTHS } from "@/lib/assets";
+import { ASSET_BY_ID, SAMPLE_MONTHS, deskName } from "@/lib/assets";
 import { runBacktest } from "@/lib/backtest";
 import { SLEEVES } from "@/lib/sleeves";
-import { editionDate, pct } from "@/lib/format";
+import { editionCloseStamp, editionDate, pct, signedChip } from "@/lib/format";
 import type { FinbertScores, RiskProfile, WeightMap } from "@/lib/types";
 
 type ModelKey = "super" | "equal" | "nlp" | "market";
@@ -87,7 +87,7 @@ export function Desk() {
           <section>
             <header className="mb-6">
               <h1 className="font-serif text-[2.55rem] leading-[0.95] font-semibold tracking-[-0.02em] text-[#111827] uppercase sm:text-[3.15rem]">
-                Sentiment&nbsp;Book
+                SENTIMENT&nbsp;BOOK
               </h1>
               <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
                 <p className="text-[11px] font-semibold tracking-[0.16em] text-[#111827] uppercase">
@@ -157,7 +157,7 @@ export function Desk() {
                 >
                   Rebalance
                 </button>
-                <span>As of 09:24 ET</span>
+                <span>{editionCloseStamp(month)}</span>
               </div>
             </header>
 
@@ -174,6 +174,7 @@ export function Desk() {
                 setLiveShock(null);
                 setNote(null);
               }}
+              why={whyTheseWeights(snapshot, model, risk, weights, prior)}
             />
 
             {note ? (
@@ -190,7 +191,7 @@ export function Desk() {
                   <span
                     className={`tabular ${ytd >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
                   >
-                    {pct(ytd, 2)} {ytd >= 0 ? "↗" : "↘"}
+                    {pct(ytd, 2)} {ytd >= 0 ? "\u2197" : "\u2198"}
                   </span>
                 </p>
               </div>
@@ -220,6 +221,9 @@ export function Desk() {
                   Equal-weight book
                 </button>
               </p>
+              <p className="mt-2 text-[11px] leading-4 text-[#9A9186]">
+                Illustrative seeded path — not a live backtest / not HARLF reported returns.
+              </p>
             </div>
           </section>
         </div>
@@ -233,6 +237,48 @@ export function Desk() {
       </div>
     </div>
   );
+}
+
+function whyTheseWeights(
+  snapshot: {
+    shock?: { ticker: string; headline: string; signedDelta: number };
+    alpha: number;
+    regime: string;
+  },
+  model: ModelKey,
+  risk: RiskProfile,
+  weights: WeightMap,
+  prior: WeightMap | null
+): string {
+  if (snapshot.shock) {
+    const asset = ASSET_BY_ID[snapshot.shock.ticker];
+    const name = deskName(asset, snapshot.shock.ticker);
+    const signed = snapshot.shock.signedDelta;
+    const dir = signed >= 0 ? "lifts" : "cuts";
+    const tilt = prior
+      ? (weights[snapshot.shock.ticker] ?? 0) - (prior[snapshot.shock.ticker] ?? 0)
+      : 0;
+    const tiltTxt =
+      prior && Math.abs(tilt) >= 0.002
+        ? ` Sleeve weight ${tilt >= 0 ? "up" : "down"} ${pct(tilt, 1)}.`
+        : "";
+    return `Selected print ${dir} ${name} in the NLP sleeve (S ${signedChip(signed)}).${tiltTxt} Mixer stays long-only, 20% cap.`;
+  }
+  const modelLabel =
+    model === "equal"
+      ? "Equal-weight book"
+      : model === "nlp"
+        ? "NLP meta-agent"
+        : model === "market"
+          ? "Data meta-agent"
+          : "Base-case mixer";
+  const riskLine =
+    risk === "offensive"
+      ? "offensive equity tilt"
+      : risk === "defensive"
+        ? "defensive gold/commodity tilt"
+        : "balanced risk";
+  return `${modelLabel} on a ${snapshot.regime.replace("-", " ")} tape; ${riskLine}. NLP mix α ${(snapshot.alpha * 100).toFixed(0)}%.`;
 }
 
 function pickModel(snapshot: { superWeights: WeightMap; equalWeights: WeightMap; agents: { id: string; weights: WeightMap }[] }, model: ModelKey): WeightMap {
