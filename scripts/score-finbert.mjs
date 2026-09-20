@@ -67,11 +67,13 @@ async function main() {
   } catch (err) {
     console.warn("FinBERT local load failed:", err?.message ?? err);
   }
+  let model = "lexicon";
   if (!items) {
     const { lexiconScore } = await import("../lib/sentiment");
     items = texts.map((text) => ({ text, scores: lexiconScore(text) }));
     console.log("Wrote lexicon dump (FinBERT model not installed).");
   } else {
+    model = "Xenova/finbert";
     console.log("Wrote Xenova/finbert dump.");
   }
   const outDir = path.join(process.cwd(), "data");
@@ -81,7 +83,7 @@ async function main() {
     out,
     JSON.stringify(
       {
-        model: items[0] && items[0]._finbert ? "Xenova/finbert" : "lexicon-or-finbert",
+        model,
         items,
       },
       null,

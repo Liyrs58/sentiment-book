@@ -155,6 +155,11 @@ export function getRawCorpus(): RawArticle[] {
 
 let scoredCache: NewsArticle[] | null = null;
 
+/** Drop scored rows so a later FinBERT dump can replace lexicon scores. */
+export function resetScoredCorpus(): void {
+  scoredCache = null;
+}
+
 /** Score every corpus headline through the active backend (lexicon unless cached FinBERT). */
 export function getScoredCorpus(): NewsArticle[] {
   if (scoredCache) return scoredCache;
