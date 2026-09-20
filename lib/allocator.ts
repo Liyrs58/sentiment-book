@@ -202,7 +202,7 @@ export function allocate(options: {
       "meta-mkt",
       2,
       "meta-market",
-      "Data meta-agent",
+      "Market specialist",
       "Convex mixer (not a trained MLP)",
       "Blends momentum, risk-parity and Sharpe specialists.",
       metaMarket
@@ -211,7 +211,7 @@ export function allocate(options: {
       "meta-nlp",
       2,
       "meta-nlp",
-      "NLP meta-agent",
+      "Sentiment specialist",
       "Convex mixer (not a trained MLP)",
       "Blends raw FinBERT-style weights with vol-adjusted scores.",
       metaNlp

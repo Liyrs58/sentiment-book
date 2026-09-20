@@ -1,5 +1,5 @@
 export function pct(n: number, digits = 1): string {
-  const sign = n > 0 ? "+" : n < 0 ? "\u2212" : "";
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
   return `${sign}${Math.abs(n * 100).toFixed(digits)}%`;
 }
 
@@ -37,7 +37,7 @@ export function editionDate(month: string): string {
 
 /** Honest edition stamp — never a fake clock. */
 export function editionCloseStamp(month: string): string {
-  return `As of edition close \u00b7 ${editionDate(month)}`;
+  return `As of edition close · ${editionDate(month)}`;
 }
 
 export function shortDate(iso: string): string {
@@ -61,7 +61,7 @@ export function chartTick(month: string): string {
 
 export function signedChip(n: number): string {
   if (n > 0) return `+${n.toFixed(2)}`;
-  if (n < 0) return `\u2212${Math.abs(n).toFixed(2)}`;
+  if (n < 0) return `−${Math.abs(n).toFixed(2)}`;
   return n.toFixed(2);
 }
 
@@ -69,7 +69,7 @@ export function signedChip(n: number): string {
 export function formatBp(delta: number): string {
   const bp = Math.round(delta * 10000);
   if (bp > 0) return `+${bp} bp`;
-  if (bp < 0) return `\u2212${Math.abs(bp)} bp`;
+  if (bp < 0) return `−${Math.abs(bp)} bp`;
   return "0 bp";
 }
 
@@ -80,7 +80,7 @@ export function clampWords(text: string, maxChars = 148): string {
   const slice = clean.slice(0, maxChars);
   const cut = slice.lastIndexOf(" ");
   const kept = (cut > 48 ? slice.slice(0, cut) : slice).replace(/[.,;:]+$/, "");
-  return `${kept}\u2026`;
+  return `${kept}…`;
 }
 
 /** Negative scores are always brick; teal is reserved for clear positives. */

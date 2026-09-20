@@ -3,7 +3,7 @@
 import type { AllocationSnapshot, RiskProfile, WeightMap } from "@/lib/types";
 import { SLEEVES, sleeveRows } from "@/lib/sleeves";
 import { ASSET_BY_ID, deskName } from "@/lib/assets";
-import { pct } from "@/lib/format";
+import { formatBp } from "@/lib/format";
 
 export function AllocationList({
   snapshot,
@@ -101,11 +101,11 @@ export function AllocationList({
                 </span>
                 <span className="tabular text-right text-[12px] text-[#9CA3AF]">
                   Benchmark {Math.round(row.benchmark * 100)}%
-                  {row.delta !== null && Math.abs(row.delta) >= 0.002 ? (
+                  {row.delta !== null && Math.abs(row.delta) >= 0.0005 ? (
                     <span
                       className={`ml-1 ${row.delta >= 0 ? "text-[#0F766E]" : "text-[#9A3412]"}`}
                     >
-                      {pct(row.delta, 1)}
+                      {formatBp(row.delta)}
                     </span>
                   ) : null}
                 </span>
