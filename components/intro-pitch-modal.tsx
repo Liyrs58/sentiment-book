@@ -8,19 +8,17 @@ const VIDEO_SRC = "/demo/investor-pitch.mp4";
 export function IntroPitchModal() {
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      if (window.localStorage.getItem(LS_KEY) === "1") {
-        setReady(true);
-        return;
+    const timer = window.setTimeout(() => {
+      try {
+        if (window.localStorage.getItem(LS_KEY) === "1") return;
+      } catch {
+        /* private mode */
       }
-    } catch {
-      /* private mode */
-    }
-    setOpen(true);
-    setReady(true);
+      setOpen(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const dismiss = useCallback(() => {
@@ -45,7 +43,7 @@ export function IntroPitchModal() {
     return () => window.removeEventListener("sb:watch-intro", onReplay);
   }, [replay]);
 
-  if (!ready || !open) return null;
+  if (!open) return null;
 
   return (
     <div
@@ -65,7 +63,7 @@ export function IntroPitchModal() {
               Want a ~35s product intro?
             </h2>
             <p className="mt-3 text-[13px] leading-relaxed text-[#6B7280]">
-              News → FinBERT-style sentiment → constrained 14-asset book → walk-forward backtest.
+              News → financial lexicon baseline → constrained 14-asset book → walk-forward backtest.
               Research desk only — LIVE trading stays off.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">

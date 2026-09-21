@@ -14,7 +14,7 @@ export default function GatePage() {
           Sentiment Book
         </h1>
         <p className="mt-4 max-w-prose text-[14px] leading-5 text-[#6B7280]">
-          This desk is behind an optional access code. Scoring stays lexicon or FinBERT. LIVE_TRADING
+          This desk is behind an optional access code. Scoring uses a financial lexicon baseline by default, with optional FinBERT weights. LIVE_TRADING
           is false.
         </p>
         <GateForm />

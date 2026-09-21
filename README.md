@@ -1,6 +1,6 @@
 # Sentiment Book
 
-News → FinBERT-style sentiment → constrained portfolio → walk-forward backtest — an FT/Economist research desk on a shipped sample corpus. Offline by default.
+News → three-class financial lexicon baseline → constrained portfolio → walk-forward backtest. The default desk uses synthetic sample headlines and a simulated market tape. Offline by default.
 
 <video src="https://egqayuigreupgfhv.public.blob.vercel-storage.com/sentiment/investor-pitch.mp4" controls width="720"></video>
 
@@ -138,11 +138,11 @@ Desk masthead shows `backend` (lexicon / finbert-local / finbert-hf) and LLM bad
 
 | Piece | Status |
 | --- | --- |
-| Scoring headlines into `{positive, negative, neutral}` | **Real** (lexicon always; FinBERT optional) |
-| Monthly \(S_t\) from the scored corpus | **Real** |
-| Constrained weights + month-end rebalance + lag | **Real** |
-| Walk-forward equity curve + CAGR / Sharpe / MDD / Calmar | **Real**, on the shipped 2024–25 tape |
-| Sample corpus (editorial + research prints) | **Real input**, in-repo |
+| Scoring headlines into `{positive, negative, neutral}` | Three-class financial lexicon baseline by default; optional ProsusAI/FinBERT when explicitly loaded |
+| Monthly \(S_t\) from the scored corpus | Implemented; input headlines are synthetic |
+| Constrained weights + month-end rebalance + lag | Implemented on the synthetic sample |
+| Walk-forward equity curve + CAGR / Sharpe / MDD / Calmar | Computed on a simulated market tape; not empirical evidence |
+| Sample corpus (generated research prints) | Synthetic input, in-repo |
 | ProsusAI/finbert weights | **Stub unless enabled** (see above) |
 | SB3 PPO/SAC/DDPG/TD3 and PyTorch meta-agents | **Stub** — inspectable mixers with those labels, not trained policies |
 | Google News scrape | **Stub** — sample corpus is the driver |
@@ -157,7 +157,7 @@ Desk masthead shows `backend` (lexicon / finbert-local / finbert-hf) and LLM bad
 
 ## Desk
 
-FT/Economist wire: Libre Franklin + Source Serif 4, `#FAF7F2`, teal `#0F766E` only for the primary positive chip and positive scores. Masthead is **SENTIMENT BOOK**.
+Editorial financial research desk: Libre Franklin + Source Serif 4, `#FAF7F2`, teal `#0F766E` only for the primary positive chip and positive scores. Masthead is **SENTIMENT BOOK**.
 
 | Control | What it does |
 | --- | --- |

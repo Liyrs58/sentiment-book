@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".vercel/**",
+    "experiments/**",
+    "scripts/ensure-investor-pitch.cjs",
   ]),
 ]);
 

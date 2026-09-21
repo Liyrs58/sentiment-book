@@ -38,8 +38,8 @@ async function main() {
   record(
     "Engineer voice off mark line",
     !/offline-lexicon|FinBERT-paper|Seeded HARLF|NLP mix/i.test(mark) &&
-      /Offline lexicon/.test(bodyText) &&
-      /Walk-forward on the shipped sample tape/.test(bodyText),
+      /financial lexicon baseline/i.test(bodyText) &&
+      /Walk-forward metrics use the simulated market tape/.test(bodyText),
     mark.slice(0, 80) || "no mark yet"
   );
   const scoreFont = await page.locator("[data-score]").first().evaluate((el) => getComputedStyle(el).fontFamily);
@@ -55,7 +55,7 @@ async function main() {
   );
   record(
     "Chart disclaimer",
-    (await page.getByText("Walk-forward on the shipped sample tape").count()) > 0,
+    (await page.getByText("Walk-forward metrics use the simulated market tape").count()) > 0,
     "walk-forward disclaimer"
   );
   record(
@@ -102,16 +102,16 @@ async function main() {
   await edition.selectOption("2025-05");
   await page.waitForTimeout(150);
 
-  const sourceFt = page.getByRole("button", { name: "Filter source FT" });
-  await sourceFt.click();
+  const sourceDemo = page.getByRole("button", { name: "Filter source Demo Financial Wire" });
+  await sourceDemo.click();
   await page.waitForTimeout(150);
   const metaLines = await page.locator("aside li p").filter({ hasText: "•" }).allInnerTexts();
-  const ftOnly =
-    metaLines.length > 0 && metaLines.every((t) => t.startsWith("FT •"));
+  const demoOnly =
+    metaLines.length > 0 && metaLines.every((t) => t.startsWith("Demo Financial Wire •"));
   const empty = await page.getByText("No prints match those filters.").count();
   record(
-    "All Sources",
-    ftOnly || empty > 0,
+    "Synthetic Sources",
+    demoOnly || empty > 0,
     empty ? "empty + clear path" : metaLines.slice(0, 2).join(" || ")
   );
   if (empty) {
@@ -288,13 +288,14 @@ async function main() {
   );
   record(
     "Model caption",
-    (await page.getByText("Base Case mixes both").count()) > 0,
+    (await page.getByText(/Base-case mixer/).count()) > 0,
     "mixer key"
   );
   record(
     "Lexicon disclaimer",
-    (await page.getByText("Offline lexicon").count()) > 0,
-    "not live FinBERT"
+    (await page.getByText(/financial lexicon baseline/i).count()) > 0 &&
+      (await page.getByText(/not empirical evidence/i).count()) > 0,
+    "baseline and simulated-performance disclaimer"
   );
 
   await page.getByRole("button", { name: "Model Portfolio" }).click();

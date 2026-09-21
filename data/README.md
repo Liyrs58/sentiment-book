@@ -1,6 +1,5 @@
-Sample-corpus dumps belong here.
+# Data
 
-- `pipeline-cache.json` is the committed HARLF corpus snapshot (weights, sample
-  scores, session). The desk uses it when `@vercel/blob` is unset so serverless
-  `/tmp` is not the only store. `npm run pipeline` rewrites it.
-- `finbert-cache.json` is produced by `npm run score:finbert` and is gitignored.
+- `pipeline-cache.json` — committed sample pipeline snapshot. Synthetic corpus + simulated tape; not empirical evidence.
+- `finbert-cache.json` — optional ProsusAI/finBERT dump (gitignored).
+- `real/` — historical-data fixtures are not included in this branch. `npm run experiment:genuine` fails closed until these are supplied and provenance is reviewed.

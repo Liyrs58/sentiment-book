@@ -1,0 +1,5 @@
+{
+  "status": "NOT_REPRODUCIBLE",
+  "metrics": null,
+  "reason": "Historical price and event fixtures are absent from this branch. Previously committed performance figures have been withdrawn because the run cannot be reproduced from the repository."
+}

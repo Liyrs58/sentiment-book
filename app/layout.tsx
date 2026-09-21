@@ -24,7 +24,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Sentiment Book",
   description:
-    "HARLF/FinBERT research desk: sample news corpus scored into sentiment features, constrained 14-asset book, walk-forward backtest.",
+    "Sentiment research desk: synthetic sample news scored with a financial lexicon baseline, constrained 14-asset book, simulated-market backtest.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

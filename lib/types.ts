@@ -18,9 +18,13 @@ export type FinbertScores = {
 
 export type ScorerBackend = "finbert-local" | "finbert-hf" | "lexicon";
 
+export type SourceType = "synthetic" | "external" | "manually-curated";
+
 export type RawArticle = {
   id: string;
   date: string;
+  /** Publication/observation instant with an explicit timezone, when available. */
+  timestamp?: string;
   month: string;
   ticker: string;
   source: string;
@@ -28,6 +32,12 @@ export type RawArticle = {
   dek: string;
   /** True when the print is part of the desk wire (editorial copy). */
   desk?: boolean;
+  /** Provenance: synthetic demo, external public feed, or desk-curated chronology. */
+  sourceType: SourceType;
+  /** Calendar date the content is as-of (ISO YYYY-MM-DD). */
+  dataAsOf: string;
+  /** True when headline/dek were generated for the demo corpus. */
+  generated: boolean;
 };
 
 export type NewsArticle = RawArticle & {

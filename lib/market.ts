@@ -131,6 +131,7 @@ export type DailyBar = {
 };
 
 export type MarketBundle = {
+  tapeKind: "SIMULATED_MARKET_TAPE";
   months: readonly string[];
   startPrices: Record<string, number>;
   monthEndPrices: Record<string, Record<string, number>>;
@@ -259,6 +260,7 @@ export function getMarket(): MarketBundle {
   }
 
   cached = {
+    tapeKind: "SIMULATED_MARKET_TAPE",
     months: SAMPLE_MONTHS,
     startPrices: START_PRICES,
     monthEndPrices,

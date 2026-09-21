@@ -29,7 +29,7 @@ function mockPmNote(report: PipelineReport): string {
   const sharpe = report.backtest.harlf.sharpe.toFixed(2);
   return (
     `PM note (${report.month}, ${report.backend}): book tilts ${top}. ` +
-    `Walk-forward CAGR ${cagr}% / Sharpe ${sharpe} on the shipped tape. ` +
+    `Walk-forward CAGR ${cagr}% / Sharpe ${sharpe} on the simulated sample tape; these are demo outputs, not empirical evidence of predictive alpha. ` +
     `Scoring is ${report.backendNote} LIVE_TRADING=false.`
   );
 }
@@ -115,10 +115,10 @@ async function callNvidia(system: string, user: string): Promise<string> {
 const SYSTEM = `You are a portfolio manager writing a short research note for a sentiment desk.
 Return plain prose only (2–4 sentences). No markdown, no bullets, no JSON.
 Do not invent returns beyond the numbers given. Do not claim live trading.
-Mention the scoring backend name if provided. Keep a clipped FT desk tone.`;
+Mention the scoring backend name if provided. Use a concise financial research tone.`;
 
 /**
- * Optional PM prose. Scoring stays FinBERT/lexicon; this only rewrites a note.
+ * Optional PM prose. This only rewrites a note; it does not score headlines.
  * Unset NVIDIA_API_KEY → deterministic mock. Failures → FALLBACK MOCK.
  */
 export async function generatePmNote(

@@ -1,0 +1,15 @@
+{
+  "name": "genuine-yahoo-gdelt",
+  "status": "NOT_REPRODUCIBLE",
+  "reason": "The referenced price and event fixture files under data/real/ are absent from this branch. No historical data or OOS performance is verified.",
+  "expectedInputs": [
+    "data/real/yahoo-monthly-2024-2025.json",
+    "data/real/events-gdelt-sec.json"
+  ],
+  "implementationNotes": [
+    "The default demo corpus and market tape are synthetic.",
+    "The default scorer is a three-class financial lexicon baseline.",
+    "The historical backtest charges one-way bps against half-L1 turnover.",
+    "No historical performance figures are supported by the repository as checked in."
+  ]
+}

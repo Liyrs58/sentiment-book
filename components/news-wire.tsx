@@ -16,8 +16,12 @@ const TONES = [
 
 type ToneId = (typeof TONES)[number]["id"];
 
-/** Short masthead — never dump every outlet into the header. */
-const MASTHEAD_SOURCES = ["FT", "Reuters", "WSJ", "Bloomberg"] as const;
+/** Synthetic sample sources exposed by the offline desk wire. */
+const SYNTHETIC_SOURCES = [
+  "Demo Financial Wire",
+  "Synthetic Research Feed",
+  "Simulated Market News",
+] as const;
 
 export function NewsWire({
   month,
@@ -54,7 +58,7 @@ export function NewsWire({
     [wire]
   );
   const moreSources = sources.filter(
-    (s) => !(MASTHEAD_SOURCES as readonly string[]).includes(s)
+    (s) => !(SYNTHETIC_SOURCES as readonly string[]).includes(s)
   );
   const moreSelected = moreSources.includes(source);
 
@@ -136,7 +140,7 @@ export function NewsWire({
           ariaLabel="Filter source All"
           onClick={() => setSource("ALL")}
         />
-        {MASTHEAD_SOURCES.map((s) => (
+        {SYNTHETIC_SOURCES.map((s) => (
           <span key={s} className="flex items-center">
             <span className="mx-2 text-[#C9C2B6]" aria-hidden>
               |
