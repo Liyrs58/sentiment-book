@@ -4,8 +4,8 @@
 | --- | --- | --- | --- |
 | Editorial + research headlines | **synthetic** | `lib/news.ts`, `lib/corpus.ts` | Sources: Demo Financial Wire / Synthetic Research Feed / Simulated Market News |
 | Seeded market path | **SIMULATED MARKET TAPE** | `lib/market.ts` | Mulberry32 seed; not Yahoo history |
-| Yahoo monthly closes | **REAL HISTORICAL DATA** | `data/real/yahoo-monthly-2024-2025.json` | Chart API v8; fetched metadata in file |
-| GDELT / SEC / curated events | **external** / **manually-curated** | `data/real/events-gdelt-sec.json` | Titles only; domain-labeled; not wire licenses |
+| Yahoo monthly closes | **MISSING** | Expected at `data/real/yahoo-monthly-2024-2025.json` | Not present in this branch; historical backtest cannot run |
+| GDELT / SEC / curated events | **MISSING** | Expected at `data/real/events-gdelt-sec.json` | Not present in this branch; no historical event performance is reproducible |
 
 ## Article fields
 

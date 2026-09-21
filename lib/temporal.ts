@@ -19,9 +19,26 @@ export function monthEndDate(month: string): string {
   return `${month}-${String(dim).padStart(2, "0")}`;
 }
 
-/** Default market cutoff for a decision month: month-end close. */
+/**
+ * Month-end rebalance cutoff at 16:00 America/New_York on the last calendar
+ * day. This is a timestamped US-market proxy; this project does not ship per-
+ * exchange holiday calendars.
+ */
 export function marketCutoffForMonth(month: string): string {
-  return monthEndDate(month);
+  const date = monthEndDate(month);
+  const noonUtc = new Date(`${date}T12:00:00.000Z`);
+  const zone = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    timeZoneName: "shortOffset",
+  })
+    .formatToParts(noonUtc)
+    .find((part) => part.type === "timeZoneName")?.value;
+  const offset = zone?.match(/^GMT([+-])(\d{1,2})(?::(\d{2}))?$/);
+  if (!offset) throw new Error(`Could not resolve New York offset for ${date}`);
+  const minutes = (Number(offset[2]) * 60 + Number(offset[3] ?? 0)) *
+    (offset[1] === "-" ? -1 : 1);
+  const utcMs = Date.parse(`${date}T16:00:00.000Z`) - minutes * 60_000;
+  return new Date(utcMs).toISOString();
 }
 
 /**
@@ -30,13 +47,14 @@ export function marketCutoffForMonth(month: string): string {
  * returns accrue the following month (decision lag).
  */
 export function tradableAllocationMonth(
-  articleDate: string,
+  articleTimestamp: string | undefined,
   cutoffForMonth: (month: string) => string = marketCutoffForMonth
-): string {
-  const month = articleDate.slice(0, 7);
+): string | null {
+  if (!isTimestamp(articleTimestamp)) return null;
+  const month = articleTimestamp.slice(0, 7);
   const cutoff = cutoffForMonth(month);
-  // If article arrives after month-end cutoff, it belongs to the next month.
-  if (articleDate > cutoff) {
+  // If the article arrives after the close, it belongs to the next month.
+  if (Date.parse(articleTimestamp) > Date.parse(cutoff)) {
     const [y, m] = month.split("-").map(Number);
     const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
     return next;
@@ -56,7 +74,15 @@ export function returnMonthForAllocation(allocationMonth: string): string {
   return `${yy}-${String(mm).padStart(2, "0")}`;
 }
 
-export type TimedArticle = { id: string; date: string; month: string };
+export type TimedArticle = { id: string; timestamp?: string };
+
+function isTimestamp(value: string | undefined): value is string {
+  return (
+    typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value) &&
+    Number.isFinite(Date.parse(value))
+  );
+}
 
 /**
  * Articles eligible for month-t sentiment: observed on or before the cutoff,
@@ -68,9 +94,10 @@ export function articlesForAllocationMonth<T extends TimedArticle>(
   cutoff: string = marketCutoffForMonth(allocationMonth)
 ): T[] {
   return articles.filter((a) => {
-    if (a.date > cutoff) return false;
-    const tradable = tradableAllocationMonth(a.date);
-    return tradable <= allocationMonth && a.date.slice(0, 7) <= allocationMonth;
+    if (!isTimestamp(a.timestamp)) return false;
+    if (Date.parse(a.timestamp) > Date.parse(cutoff)) return false;
+    const tradable = tradableAllocationMonth(a.timestamp);
+    return tradable === allocationMonth;
   });
 }
 
@@ -79,10 +106,15 @@ export function assertNoFutureArticles<T extends TimedArticle>(
   eligible: T[],
   asOf: string
 ): void {
+  const asOfMs = Date.parse(asOf);
+  if (!Number.isFinite(asOfMs)) throw new Error(`Invalid as-of timestamp: ${asOf}`);
   for (const a of eligible) {
-    if (a.date > asOf) {
+    if (!isTimestamp(a.timestamp)) {
+      throw new Error(`Missing or invalid timestamp for article ${a.id}`);
+    }
+    if (Date.parse(a.timestamp) > asOfMs) {
       throw new Error(
-        `Future leak: article ${a.id} dated ${a.date} after as-of ${asOf}`
+        `Future leak: article ${a.id} dated ${a.timestamp} after as-of ${asOf}`
       );
     }
   }

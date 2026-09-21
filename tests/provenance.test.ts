@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRawCorpus, getScoredCorpus } from "@/lib/corpus";
+import { getDeskWire, getRawCorpus, getScoredCorpus } from "@/lib/corpus";
 import { getMarket } from "@/lib/market";
 import { scoreHeadlineSync } from "@/lib/sentiment";
 
@@ -11,6 +11,16 @@ const ALLOWED_SYNTH = [
 ];
 
 describe("provenance", () => {
+  it("keeps synthetic, provenance-labeled stories in the visible desk wire", () => {
+    const wire = getDeskWire();
+    expect(wire.length).toBeGreaterThan(0);
+    for (const article of wire) {
+      expect(article.sourceType).toBe("synthetic");
+      expect(article.generated).toBe(true);
+      expect(ALLOWED_SYNTH).toContain(article.source);
+    }
+  });
+
   it("synthetic corpus never uses FT/Reuters/WSJ/Bloomberg as source", () => {
     for (const a of getRawCorpus()) {
       expect(a.sourceType).toBe("synthetic");

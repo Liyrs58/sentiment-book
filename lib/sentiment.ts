@@ -1,15 +1,6 @@
 import type { FinbertScores, ScorerBackend } from "./types";
 
-/**
- * Lightweight FinBERT equivalent (always available).
- *
- * Paper identity (Coriat & Benhamou, arXiv:2507.18560, Alg. 1):
- *   S = P_positive − P_negative
- * FinBERT (Araci 2019 / ProsusAI/finBERT) outputs a 3-class softmax over
- * {positive, negative, neutral}. This stand-in builds the same simplex from a
- * financial lexicon: logits → softmax → S. Used when the ONNX/HF model is
- * missing. Not a trained BERT.
- */
+/** Three-class financial lexicon baseline; this is not a language model. */
 
 const POSITIVE: [string, number][] = [
   ["beats estimates", 1.4],
@@ -118,7 +109,7 @@ function softmax3(pos: number, neu: number, neg: number): FinbertScores {
   };
 }
 
-/** Offline stand-in when FinBERT weights are not loaded. */
+/** Deterministic offline three-class financial lexicon baseline. */
 export function lexiconScore(text: string): FinbertScores {
   const pos = hits(text, POSITIVE);
   const neg = hits(text, NEGATIVE);
@@ -174,7 +165,7 @@ export function scoreHeadlineSync(text: string): ScoreResult {
   const result: ScoreResult = {
     scores: lexiconScore(key),
     backend: "lexicon",
-    note: "Lexicon softmax (documented FinBERT equivalent). Set HF_TOKEN or run npm run score:finbert for ProsusAI/finbert.",
+    note: "Three-class financial lexicon baseline. Optional ProsusAI/FinBERT scoring requires HF_TOKEN or a local model dump.",
   };
   memoryCache.set(key, result);
   return result;
@@ -199,7 +190,7 @@ export async function scoreHeadline(text: string): Promise<ScoreResult> {
     return {
       scores: lexiconScore(key),
       backend: "lexicon",
-      note: "Headline too short for FinBERT; lexicon used.",
+      note: "Headline too short for model scoring; lexicon baseline used.",
     };
   }
   const cached = scoreHeadlineSync(key);

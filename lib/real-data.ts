@@ -1,7 +1,7 @@
 /**
- * Genuine-data research path: historical Yahoo monthly closes + legal
- * timestamped events (GDELT / RSS / SEC / manually curated chronology).
- * Offline fixtures under data/real/. Never labels content as FT/Reuters/WSJ/Bloomberg.
+ * Optional historical-input research path. Fixtures under data/real/ must
+ * carry source, fetch-time, and per-event provenance before results can be
+ * described as historical evidence. Never labels content as FT/Reuters/WSJ/Bloomberg.
  */
 
 import { readFileSync, existsSync } from "fs";
@@ -20,13 +20,14 @@ import { CONSTRAINTS, project } from "./constraints";
 export type RealPriceBar = { month: string; timestamp: number; close: number };
 
 export type RealPriceBundle = {
-  tapeKind: "REAL_HISTORICAL_DATA";
+  sourceType: SourceType;
   source: string;
   fetchedAt: string;
   series: Record<string, { yahooSymbol: string; bars: RealPriceBar[] }>;
 };
 
 export type RealEventArticle = RawArticle & {
+  timestamp: string;
   url?: string;
   provider?: string;
 };
@@ -41,12 +42,26 @@ export function loadRealPrices(): RealPriceBundle {
     throw new Error(`Missing real price fixture: ${path}`);
   }
   const raw = JSON.parse(readFileSync(path, "utf8")) as {
+    sourceType: unknown;
     source: string;
     fetchedAt: string;
     series: RealPriceBundle["series"];
   };
+  if (raw.sourceType !== "external") {
+    throw new Error("Historical price fixture must declare sourceType=external");
+  }
+  if (typeof raw.source !== "string" || !raw.source.trim()) {
+    throw new Error("Historical price fixture is missing source metadata");
+  }
+  if (
+    typeof raw.fetchedAt !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(raw.fetchedAt) ||
+    !Number.isFinite(Date.parse(raw.fetchedAt))
+  ) {
+    throw new Error("Historical price fixture is missing a valid zoned fetchedAt timestamp");
+  }
   return {
-    tapeKind: "REAL_HISTORICAL_DATA",
+    sourceType: "external",
     source: raw.source,
     fetchedAt: raw.fetchedAt,
     series: raw.series,
@@ -62,19 +77,37 @@ export function loadRealEvents(): RealEventArticle[] {
     articles: Array<Record<string, unknown>>;
   };
   return raw.articles.map((a) => {
-    const date = String(a.date);
+    const timestamp = typeof a.timestamp === "string" ? a.timestamp : "";
+    if (
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(timestamp) ||
+      !Number.isFinite(Date.parse(timestamp))
+    ) {
+      throw new Error(`Event ${String(a.id)} is missing a valid zoned timestamp`);
+    }
+    const sourceType = a.sourceType;
+    if (!["synthetic", "external", "manually-curated"].includes(String(sourceType))) {
+      throw new Error(`Event ${String(a.id)} is missing valid sourceType provenance`);
+    }
+    if (typeof a.generated !== "boolean") {
+      throw new Error(`Event ${String(a.id)} is missing generated provenance`);
+    }
+    if (typeof a.source !== "string" || !a.source.trim()) {
+      throw new Error(`Event ${String(a.id)} is missing source provenance`);
+    }
+    const date = timestamp.slice(0, 10);
     return {
       id: String(a.id),
       date,
+      timestamp,
       month: String(a.month ?? date.slice(0, 7)),
       ticker: String(a.ticker),
       source: String(a.source),
       headline: String(a.headline),
       dek: String(a.dek ?? ""),
       desk: false,
-      sourceType: (a.sourceType as SourceType) ?? "external",
+      sourceType: sourceType as SourceType,
       dataAsOf: String(a.dataAsOf ?? date),
-      generated: Boolean(a.generated),
+      generated: a.generated,
       url: a.url ? String(a.url) : undefined,
       provider: a.provider ? String(a.provider) : undefined,
     };
@@ -114,9 +147,7 @@ export function sentimentFromEvents(
   allocationMonth: string
 ): Record<string, number> {
   const cutoff = marketCutoffForMonth(allocationMonth);
-  const eligible = articlesForAllocationMonth(events, allocationMonth, cutoff).filter(
-    (ev) => ev.month === allocationMonth
-  );
+  const eligible = articlesForAllocationMonth(events, allocationMonth, cutoff);
   assertNoFutureArticles(eligible, cutoff);
   const buckets: Record<string, number[]> = {};
   for (const ev of eligible) {

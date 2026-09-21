@@ -204,8 +204,8 @@ export function Desk() {
 
         <footer className="mt-8 border-t border-[#111827] pt-3 text-[11px] leading-4 text-[#9A9186]">
           <p>
-            Editorial sample. Scoring: lexicon or optional FinBERT dump. Optional PM notes via NVIDIA NIM
-            (mock without key). Walk-forward on the shipped sample tape. Optional Alpaca paper sleeve is
+            Synthetic sample headlines. Scoring: three-class financial lexicon baseline or optional FinBERT dump. Optional PM notes via NVIDIA NIM
+            (mock without key). Walk-forward metrics use the simulated market tape and are not empirical evidence. Optional Alpaca paper sleeve is
             off by default. LIVE_TRADING=false.
           </p>
           <p className="mt-1">Past performance is not indicative of future results.</p>

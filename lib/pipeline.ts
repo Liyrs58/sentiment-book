@@ -72,7 +72,7 @@ export function runResearchPipeline(month = "2025-05"): PipelineReport {
       "ProsusAI/finbert weights — optional; default is three-class financial lexicon baseline (not FinBERT).",
       "Stable-Baselines3 PPO/SAC/DDPG/TD3 and PyTorch meta-agents — heuristic mixers with those labels.",
       "Google News live scrape — optional; sample corpus is the default.",
-      "Default desk tape — SIMULATED MARKET TAPE (seeded). Genuine Yahoo monthly fixture lives under data/real/.",
+      "Default desk tape — SIMULATED MARKET TAPE (seeded). Historical fixture loader exists, but the required data/real/ fixtures are missing from this branch.",
       "HARLF reported 26% CAGR / Sharpe 1.2 on 2018–24 — not claimed here.",
       "Alpaca paper sleeve — optional, PAPER_BROKER=off by default; not required for HARLF research.",
     ],

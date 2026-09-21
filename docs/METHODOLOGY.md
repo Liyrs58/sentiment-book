@@ -8,14 +8,11 @@
 4. **Allocation:** Constrained long-only book (floor 1.2%, cap 20%, Σw=1, leverage 1).
 5. **Backtest:** Walk-forward on **SIMULATED MARKET TAPE** — weights formed at month \(t\) applied to returns of \(t+1\).
 
-## Genuine-data research path
+## Historical-data path status
 
-1. **Prices:** Yahoo Finance monthly closes committed under `data/real/yahoo-monthly-2024-2025.json` (`tapeKind=REAL_HISTORICAL_DATA`).
-2. **Events:** Legal timestamped titles from GDELT Doc API (when available), SEC EDGAR Atom, Fed/ECB public feeds when parseable, plus **manually curated** macro chronology paraphrases — never labeled as FT/Reuters/WSJ/Bloomberg.
-3. **Alignment:** `lib/temporal.ts` — market cutoff = month-end; articles after cutoff excluded; one-period decision lag; tests forbid future leaks.
-4. **Costs:** Proportional cost on turnover (default 10 bps one-way).
-5. **Benchmark:** GSPC monthly return; equal-weight book as secondary reference.
-6. **OOS:** Default OOS start `2025-01` (configurable).
+The code contains a loader and backtest for timestamped Yahoo/event fixtures, but `data/real/` and both referenced fixture files are absent from this branch. `npm run experiment:genuine` therefore fails closed and cannot produce reproducible historical results. The checked-in report is a status record, not performance evidence.
+
+If fixtures are supplied, the intended path uses a month-end 16:00 America/New_York cutoff proxy, shifts after-cutoff articles to the next allocation month, applies a one-month decision lag, charges proportional one-way costs on half-L1 turnover, and compares against GSPC and equal weight. Calendar month-end is only a proxy; it does not model exchange holidays or asset-specific closes.
 
 Run: `npm run experiment:genuine` → writes `experiments/genuine-yahoo-gdelt/manifest.json` + `metrics.json`.
 
@@ -23,4 +20,4 @@ Run: `npm run experiment:genuine` → writes `experiments/genuine-yahoo-gdelt/ma
 
 - Lexicon ≠ FinBERT; agreement is measured separately when a FinBERT dump exists.
 - Simulated desk backtest ≠ paper HARLF live results.
-- Genuine-path metrics are small-sample research outputs with listed limitations.
+- No historical-path performance claim is supported until the missing source data and provenance are committed and the run is reproduced.

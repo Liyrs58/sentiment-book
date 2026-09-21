@@ -65,7 +65,7 @@ export function tiltRisk(weights: WeightMap, profile: RiskProfile): WeightMap {
 }
 
 /**
- * Construct a 14-name book from monthly market metrics + FinBERT-style S_t.
+ * Construct a 14-name book from monthly market metrics + sentiment S_t.
  *
  * Hierarchy matches HARLF (paper §§5–7) as an inspectable mixer, not trained
  * SB3/PyTorch policies: PPO/SAC on market features, DDPG/TD3 on NLP features,
@@ -184,7 +184,7 @@ export function allocate(options: {
       "ddpg-nlp",
       1,
       "nlp",
-      "DDPG · FinBERT",
+      "DDPG · sentiment",
       "DDPG stand-in (not SB3)",
       "Softmax of monthly S = mean(P_pos − P_neg) from the scored corpus.",
       nlpRaw
@@ -213,7 +213,7 @@ export function allocate(options: {
       "meta-nlp",
       "Sentiment specialist",
       "Convex mixer (not a trained MLP)",
-      "Blends raw FinBERT-style weights with vol-adjusted scores.",
+      "Blends sentiment-derived weights with vol-adjusted scores.",
       metaNlp
     ),
     agent(

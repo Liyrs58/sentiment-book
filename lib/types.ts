@@ -23,6 +23,8 @@ export type SourceType = "synthetic" | "external" | "manually-curated";
 export type RawArticle = {
   id: string;
   date: string;
+  /** Publication/observation instant with an explicit timezone, when available. */
+  timestamp?: string;
   month: string;
   ticker: string;
   source: string;

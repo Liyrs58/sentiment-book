@@ -1,7 +1,8 @@
 /**
- * Genuine-data walk-forward backtest on REAL HISTORICAL DATA (Yahoo monthly)
- * + legal timestamped events. Includes costs, turnover, benchmark, OOS split.
- * Does not claim equality with the paper or with FinBERT.
+ * Walk-forward backtest over supplied monthly price and timestamped event
+ * inputs. Output preserves their declared provenance; input quality and
+ * reproducibility must be verified before describing results as evidence.
+ * Includes costs, turnover, benchmark, and an OOS split.
  */
 
 import { ASSET_IDS } from "./assets";
@@ -12,7 +13,8 @@ import {
   monthlyReturnsFromPrices,
   sentimentFromEvents,
 } from "./real-data";
-import type { BacktestStats, WeightMap } from "./types";
+import type { RealEventArticle, RealPriceBundle } from "./real-data";
+import type { BacktestStats, SourceType, WeightMap } from "./types";
 import { CONSTRAINTS } from "./constraints";
 
 export type GenuineBacktestOptions = {
@@ -23,7 +25,10 @@ export type GenuineBacktestOptions = {
 };
 
 export type GenuineBacktestResult = {
-  tapeKind: "REAL_HISTORICAL_DATA";
+  provenance: {
+    prices: { sourceType: SourceType; source: string; fetchedAt: string };
+    events: Record<SourceType, number>;
+  };
   methodology: string;
   limitations: string[];
   costBps: number;
@@ -80,13 +85,27 @@ function equalWeights(): WeightMap {
 export function runGenuineBacktest(
   options: GenuineBacktestOptions = {}
 ): GenuineBacktestResult {
+  return runGenuineBacktestFromData(loadRealPrices(), loadRealEvents(), options);
+}
+
+export function runGenuineBacktestFromData(
+  prices: RealPriceBundle,
+  sourceEvents: RealEventArticle[],
+  options: GenuineBacktestOptions = {}
+): GenuineBacktestResult {
   const costBps = options.costBps ?? 10;
   const cost = costBps / 10_000;
   const oosStart = options.oosStart ?? "2025-01";
-  const prices = loadRealPrices();
-  const events = loadRealEvents().filter(
-    (e) => e.month >= "2024-01" && e.month <= "2025-12"
-  );
+  if (!Number.isFinite(costBps) || costBps < 0) {
+    throw new Error("costBps must be a finite non-negative number");
+  }
+  const events = sourceEvents;
+  const eventCounts: Record<SourceType, number> = {
+    synthetic: 0,
+    external: 0,
+    "manually-curated": 0,
+  };
+  for (const event of events) eventCounts[event.sourceType] += 1;
   const { months, returns } = monthlyReturnsFromPrices(prices);
   let stratNav = 1;
   let eqNav = 1;
@@ -94,10 +113,8 @@ export function runGenuineBacktest(
   const curve: GenuineBacktestResult["curve"] = [
     { month: "start", strategy: 1, equal: 1, spx: 1 },
   ];
-  let live: WeightMap | null = null;
   let prev: WeightMap = equalWeights();
-  const turnovers: number[] = [];
-  let totalCostDrag = 0;
+  const turnoverByMonth: { month: string; turnover: number; costDrag: number }[] = [];
   const usedMonths: string[] = [];
 
   for (const retMonth of months) {
@@ -107,8 +124,7 @@ export function runGenuineBacktest(
 
     const equal = equalWeights();
     const sentiment = sentimentFromEvents(events, allocMonth);
-    const target = allocateFromSentiment(sentiment);
-    const allocation = live ?? equal;
+    const allocation = allocateFromSentiment(sentiment);
 
     const retMap = returns[retMonth];
     if (!retMap) continue;
@@ -121,9 +137,10 @@ export function runGenuineBacktest(
     }
 
     const tov = turnover(prev, allocation);
-    turnovers.push(tov);
-    const costDrag = tov * cost * 2;
-    totalCostDrag += costDrag;
+    // turnover() is one-way traded notional (half-L1); charge the configured
+    // one-way basis-point cost once against that traded notional.
+    const costDrag = tov * cost;
+    turnoverByMonth.push({ month: retMonth, turnover: tov, costDrag });
     h -= costDrag;
 
     stratNav *= 1 + h;
@@ -136,19 +153,32 @@ export function runGenuineBacktest(
       spx: spxNav,
     });
     usedMonths.push(retMonth);
-    live = target;
     prev = allocation;
   }
 
   const oosMonths = usedMonths.filter((m) => m >= oosStart);
-  const n = Math.max(usedMonths.length, 1);
+  if (oosMonths.length === 0) {
+    throw new Error(`No untouched test months at or after ${oosStart}`);
+  }
+  const firstOosCurveIndex = curve.findIndex((point) => point.month === oosMonths[0]);
+  const oosCurve = curve.slice(Math.max(0, firstOosCurveIndex - 1));
+  const oosTurnovers = turnoverByMonth.filter((row) => row.month >= oosStart);
   const avgTurnover =
-    turnovers.reduce((a, b) => a + b, 0) / Math.max(turnovers.length, 1);
+    oosTurnovers.reduce((a, b) => a + b.turnover, 0) / oosTurnovers.length;
+  const totalCostDrag = oosTurnovers.reduce((a, b) => a + b.costDrag, 0);
 
   return {
-    tapeKind: "REAL_HISTORICAL_DATA",
+    provenance: {
+      prices: {
+        sourceType: prices.sourceType,
+        source: prices.source,
+        fetchedAt: prices.fetchedAt,
+      },
+      events: eventCounts,
+    },
     methodology:
-      `Yahoo monthly closes (data/real) + legal timestamped events; ` +
+      `${prices.sourceType} monthly closes from ${prices.source} + timestamped event inputs ` +
+      `(synthetic ${eventCounts.synthetic}, external ${eventCounts.external}, manually curated ${eventCounts["manually-curated"]}); ` +
       `lexicon baseline S=P_pos-P_neg; weights from month t → returns t+${CONSTRAINTS.decisionLagMonths}; ` +
       `long-only project() floor/cap; one-way cost ${costBps} bps on turnover; benchmark = GSPC; OOS from ${oosStart}.`,
     limitations: [
@@ -166,16 +196,16 @@ export function runGenuineBacktest(
     avgTurnover,
     totalCostDrag,
     strategy: stats(
-      curve.map((c) => c.strategy),
-      n
+      oosCurve.map((c) => c.strategy),
+      oosMonths.length
     ),
     equal: stats(
-      curve.map((c) => c.equal),
-      n
+      oosCurve.map((c) => c.equal),
+      oosMonths.length
     ),
     benchmarkSpx: stats(
-      curve.map((c) => c.spx),
-      n
+      oosCurve.map((c) => c.spx),
+      oosMonths.length
     ),
     curve,
     eventCount: events.length,

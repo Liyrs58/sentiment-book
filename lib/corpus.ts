@@ -131,7 +131,8 @@ function researchArticles(): RawArticle[] {
           source: pick(RESEARCH_SOURCES, i + k + m),
           headline,
           dek,
-          desk: false,
+          // These generated sample prints are the desk wire on this checkout.
+          desk: true,
           sourceType: "synthetic",
           dataAsOf: date,
           generated: true,

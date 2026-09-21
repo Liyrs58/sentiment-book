@@ -1,34 +1,5 @@
 {
-  "avgTurnover": 0.008898693792587948,
-  "totalCostDrag": 0.0004449346896293974,
-  "strategy": {
-    "cagr": 0.16406272468945904,
-    "sharpe": 2.911199272680988,
-    "maxDrawdown": -0.023314273420089293,
-    "calmar": 7.0370078334969905,
-    "volatility": 0.05299057427534905,
-    "totalReturn": 0.37230547830910976
-  },
-  "equal": {
-    "cagr": 0.16403294091492504,
-    "sharpe": 2.906181369812458,
-    "maxDrawdown": -0.023304114968236256,
-    "calmar": 7.038797274151093,
-    "volatility": 0.05307465845270913,
-    "totalReturn": 0.3722323295617036
-  },
-  "benchmarkSpx": {
-    "cagr": 0.1893593419155153,
-    "sharpe": 1.761547687762446,
-    "maxDrawdown": -0.07805105567413484,
-    "calmar": 2.426095845597469,
-    "volatility": 0.10211002317061148,
-    "totalReturn": 0.4351664289665724
-  },
-  "finalNav": {
-    "strategy": 1.3723054783091098,
-    "equal": 1.3722323295617036,
-    "spx": 1.4351664289665724
-  },
-  "interpretation": "Strategy NAV is nearly identical to equal-weight on this window because event coverage is sparse and the lexicon tilt is weak — this is expected, not a claim of alpha. Benchmark GSPC differs. Do not present these figures as FinBERT or HARLF paper performance."
+  "status": "NOT_REPRODUCIBLE",
+  "metrics": null,
+  "reason": "Historical price and event fixtures are absent from this branch. Previously committed performance figures have been withdrawn because the run cannot be reproduced from the repository."
 }
